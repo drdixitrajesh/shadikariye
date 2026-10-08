@@ -1,5 +1,26 @@
 # Deployment notes, 7 October 2026
 
+## managelove.com free-only deployment, 8 October 2026
+
+The Cloudflare zone `managelove.com` is active on Free Website. The owner-authenticated Workers plans dashboard separately confirms **Free / $0 / Current plan** for account `0806706663c74737529a2e2f9de75440`. No subscription upgrade or paid service was activated. The browsing-only deployment is live at **https://managelove.com**; full member features remain unavailable. Deployment completed on 8 October 2026 at 11:42 IST, using Worker version `90be8a85-5bf9-48e6-aa16-0905eba533c4` at 100% traffic. The additional Worker address is `https://managelove.softinator-gj-account.workers.dev`.
+
+`wrangler.managelove.jsonc` is the standalone browsing-only configuration. It serves the existing Vinext application and static assets on Workers Free, without D1, R2, Twilio, or connector bindings. R2 has usage-based overages and is deliberately excluded from this strict free-only deployment. Managed Sites hosting remains configured separately in `.openai/hosting.json`.
+
+`STANDALONE_MODE=demo` rejects managed identity headers and denies member and administrator operations, including forged identity requests. Managed ChatGPT auth routes return an explicit unavailable response. The interface explains that only fictional demo browsing and the community/gotra directory are currently available. Existing trusted managed-host behavior is retained when this standalone flag is absent. No existing member records or photos are imported.
+
+Routing attaches only `managelove.com/*` and `www.managelove.com/*` to the new `managelove` Worker. Existing proxied parking DNS records were verified unchanged. The Worker redirects HTTP and www to `https://managelove.com`, retaining paths and query strings. Both routes have `request_limit_fail_open=false`. The predeploy DNS, Worker routes, Worker domains and Worker inventory snapshot is saved in ignored `outputs/deployment-2026-10-08/predeploy-cloudflare.json`; immediate pre/post-cutover snapshots are `cutover-before.json` and `cutover-after.json` in the same directory. Rollback removes only route IDs `a67c2ee6a3924225b1399a7c647521bf` (apex) and `7554cb99ee34422092c1260bffb4f5fb` (www), returning traffic to the original DNS destination.
+
+Checks: production build, TypeScript and Wrangler deployment dry run passed; 31 standalone checks and 126 existing integration checks passed. Live HTTPS homepage and terms, static assets, demo API state, forged-header rejection, blocked member/admin operations, and HTTP/www redirects passed. Six live JS/CSS assets and the portrait file matched the local build/source SHA-256 hashes. Browser verification confirmed language switching, city filtering, six demo listings after reset, and the unavailable-member-services screen. Repository-wide lint still reports eight errors inherited from HEAD in the original interface/admin/terms files; the deployment/auth changes pass focused lint with one existing Worker export-style warning. Evidence, deployment logs, `live-verification.json`, `baseline-lint.json`, free-plan proof and live screenshots are stored in ignored `outputs/deployment-2026-10-08/`.
+
+For subsequent updates, rebuild and deploy from the repository root using the existing deployment credential injected through BWS into `CLOUDFLARE_API_TOKEN`, never printed or committed:
+
+```sh
+npm run build
+node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.managelove.jsonc
+```
+
+Keep the account on Workers Free. The current plan allows 100,000 Worker requests per day and 10 ms CPU per request; exceeding free allowances may cause request failures instead of a paid upgrade. Verify HTTPS, both hostnames, static assets, anonymous state, rejection of forged identity headers, and administrator denial on the live deployment before calling it complete. Full member launch requires independently verified standalone authentication and an explicitly agreed mobile-verification approach that satisfies the free-only requirement; do not bypass the existing verification controls.
+
 This revision updates the existing owner-private Vaidik Milan preview. A new GitHub repository and the user's own Cloudflare account deployment are still pending account access. Do not treat the managed preview as deployment to shadikariye.com.
 
 ## OTP activation

@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "managelove",
+  "account_id": "0806706663c74737529a2e2f9de75440",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "rules": [{ "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }],
+  "assets": { "directory": "dist/client" },
+  "vars": { "STANDALONE_MODE": "demo" },
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "managelove.com/*", "zone_name": "managelove.com" },
+    { "pattern": "www.managelove.com/*", "zone_name": "managelove.com" }
+  ],
+  "preview_urls": false,
+  "observability": { "enabled": false }
+}

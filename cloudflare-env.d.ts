@@ -1,5 +1,6 @@
 declare namespace Cloudflare {
   interface Env {
+    STANDALONE_MODE?: "demo";
     DB?: D1Database;
     BUCKET?: R2Bucket;
     TWILIO_ACCOUNT_SID?: string;
