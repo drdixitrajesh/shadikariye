@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791272463921,
+      "tag": "0000_bumpy_puma",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791353273921,
+      "tag": "0001_jittery_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791353655497,
+      "tag": "0002_workable_leper_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791356128327,
+      "tag": "0003_wakeful_peter_quill",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791425817743,
+      "tag": "0004_many_korg",
+      "breakpoints": true
+    }
+  ]
+}

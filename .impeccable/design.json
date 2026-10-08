@@ -1,0 +1,784 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T08:03:36.987461+00:00",
+  "title": "Design System: Vaidik Milan",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Family Album Plum",
+        "tonalRamp": [
+          "oklch(15.0% 0.07287 354.39)",
+          "oklch(26.4% 0.07287 354.39)",
+          "oklch(37.9% 0.07287 354.39)",
+          "oklch(49.3% 0.07287 354.39)",
+          "oklch(60.7% 0.07287 354.39)",
+          "oklch(72.1% 0.07287 354.39)",
+          "oklch(83.6% 0.07287 354.39)",
+          "oklch(95.0% 0.07287 354.39)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.06336 353.98)",
+          "oklch(26.4% 0.06336 353.98)",
+          "oklch(37.9% 0.06336 353.98)",
+          "oklch(49.3% 0.06336 353.98)",
+          "oklch(60.7% 0.06336 353.98)",
+          "oklch(72.1% 0.06336 353.98)",
+          "oklch(83.6% 0.06336 353.98)",
+          "oklch(95.0% 0.06336 353.98)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Primary Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.00000 89.88)",
+          "oklch(26.4% 0.00000 89.88)",
+          "oklch(37.9% 0.00000 89.88)",
+          "oklch(49.3% 0.00000 89.88)",
+          "oklch(60.7% 0.00000 89.88)",
+          "oklch(72.1% 0.00000 89.88)",
+          "oklch(83.6% 0.00000 89.88)",
+          "oklch(95.0% 0.00000 89.88)"
+        ]
+      },
+      "secondary": {
+        "role": "primary",
+        "displayName": "Secondary",
+        "tonalRamp": [
+          "oklch(15.0% 0.00950 352.37)",
+          "oklch(26.4% 0.00950 352.37)",
+          "oklch(37.9% 0.00950 352.37)",
+          "oklch(49.3% 0.00950 352.37)",
+          "oklch(60.7% 0.00950 352.37)",
+          "oklch(72.1% 0.00950 352.37)",
+          "oklch(83.6% 0.00950 352.37)",
+          "oklch(95.0% 0.00950 352.37)"
+        ]
+      },
+      "secondary-hover": {
+        "role": "primary",
+        "displayName": "Secondary Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.00847 349.24)",
+          "oklch(26.4% 0.00847 349.24)",
+          "oklch(37.9% 0.00847 349.24)",
+          "oklch(49.3% 0.00847 349.24)",
+          "oklch(60.7% 0.00847 349.24)",
+          "oklch(72.1% 0.00847 349.24)",
+          "oklch(83.6% 0.00847 349.24)",
+          "oklch(95.0% 0.00847 349.24)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15.0% 0.01250 337.53)",
+          "oklch(26.4% 0.01250 337.53)",
+          "oklch(37.9% 0.01250 337.53)",
+          "oklch(49.3% 0.01250 337.53)",
+          "oklch(60.7% 0.01250 337.53)",
+          "oklch(72.1% 0.01250 337.53)",
+          "oklch(83.6% 0.01250 337.53)",
+          "oklch(95.0% 0.01250 337.53)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "tonalRamp": [
+          "oklch(15.0% 0.00411 91.45)",
+          "oklch(26.4% 0.00411 91.45)",
+          "oklch(37.9% 0.00411 91.45)",
+          "oklch(49.3% 0.00411 91.45)",
+          "oklch(60.7% 0.00411 91.45)",
+          "oklch(72.1% 0.00411 91.45)",
+          "oklch(83.6% 0.00411 91.45)",
+          "oklch(95.0% 0.00411 91.45)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15.0% 0.02057 315.76)",
+          "oklch(26.4% 0.02057 315.76)",
+          "oklch(37.9% 0.02057 315.76)",
+          "oklch(49.3% 0.02057 315.76)",
+          "oklch(60.7% 0.02057 315.76)",
+          "oklch(72.1% 0.02057 315.76)",
+          "oklch(83.6% 0.02057 315.76)",
+          "oklch(95.0% 0.02057 315.76)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Clean Album Page",
+        "tonalRamp": [
+          "oklch(15.0% 0.00000 89.88)",
+          "oklch(26.4% 0.00000 89.88)",
+          "oklch(37.9% 0.00000 89.88)",
+          "oklch(49.3% 0.00000 89.88)",
+          "oklch(60.7% 0.00000 89.88)",
+          "oklch(72.1% 0.00000 89.88)",
+          "oklch(83.6% 0.00000 89.88)",
+          "oklch(95.0% 0.00000 89.88)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.0% 0.00576 84.57)",
+          "oklch(26.4% 0.00576 84.57)",
+          "oklch(37.9% 0.00576 84.57)",
+          "oklch(49.3% 0.00576 84.57)",
+          "oklch(60.7% 0.00576 84.57)",
+          "oklch(72.1% 0.00576 84.57)",
+          "oklch(83.6% 0.00576 84.57)",
+          "oklch(95.0% 0.00576 84.57)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.01649 318.69)",
+          "oklch(26.4% 0.01649 318.69)",
+          "oklch(37.9% 0.01649 318.69)",
+          "oklch(49.3% 0.01649 318.69)",
+          "oklch(60.7% 0.01649 318.69)",
+          "oklch(72.1% 0.01649 318.69)",
+          "oklch(83.6% 0.01649 318.69)",
+          "oklch(95.0% 0.01649 318.69)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15.0% 0.00635 75.40)",
+          "oklch(26.4% 0.00635 75.40)",
+          "oklch(37.9% 0.00635 75.40)",
+          "oklch(49.3% 0.00635 75.40)",
+          "oklch(60.7% 0.00635 75.40)",
+          "oklch(72.1% 0.00635 75.40)",
+          "oklch(83.6% 0.00635 75.40)",
+          "oklch(95.0% 0.00635 75.40)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input",
+        "tonalRamp": [
+          "oklch(15.0% 0.00772 345.38)",
+          "oklch(26.4% 0.00772 345.38)",
+          "oklch(37.9% 0.00772 345.38)",
+          "oklch(49.3% 0.00772 345.38)",
+          "oklch(60.7% 0.00772 345.38)",
+          "oklch(72.1% 0.00772 345.38)",
+          "oklch(83.6% 0.00772 345.38)",
+          "oklch(95.0% 0.00772 345.38)"
+        ]
+      },
+      "ring": {
+        "role": "primary",
+        "displayName": "Ring",
+        "tonalRamp": [
+          "oklch(15.0% 0.06204 353.43)",
+          "oklch(26.4% 0.06204 353.43)",
+          "oklch(37.9% 0.06204 353.43)",
+          "oklch(49.3% 0.06204 353.43)",
+          "oklch(60.7% 0.06204 353.43)",
+          "oklch(72.1% 0.06204 353.43)",
+          "oklch(83.6% 0.06204 353.43)",
+          "oklch(95.0% 0.06204 353.43)"
+        ]
+      },
+      "destructive": {
+        "role": "semantic",
+        "displayName": "Destructive",
+        "tonalRamp": [
+          "oklch(15.0% 0.14749 24.16)",
+          "oklch(26.4% 0.14749 24.16)",
+          "oklch(37.9% 0.14749 24.16)",
+          "oklch(49.3% 0.14749 24.16)",
+          "oklch(60.7% 0.14749 24.16)",
+          "oklch(72.1% 0.14749 24.16)",
+          "oklch(83.6% 0.14749 24.16)",
+          "oklch(95.0% 0.14749 24.16)"
+        ]
+      },
+      "card-border": {
+        "role": "neutral",
+        "displayName": "Card Border",
+        "tonalRamp": [
+          "oklch(15.0% 0.00668 5.64)",
+          "oklch(26.4% 0.00668 5.64)",
+          "oklch(37.9% 0.00668 5.64)",
+          "oklch(49.3% 0.00668 5.64)",
+          "oklch(60.7% 0.00668 5.64)",
+          "oklch(72.1% 0.00668 5.64)",
+          "oklch(83.6% 0.00668 5.64)",
+          "oklch(95.0% 0.00668 5.64)"
+        ]
+      },
+      "card-border-hover": {
+        "role": "neutral",
+        "displayName": "Card Border Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.04168 349.30)",
+          "oklch(26.4% 0.04168 349.30)",
+          "oklch(37.9% 0.04168 349.30)",
+          "oklch(49.3% 0.04168 349.30)",
+          "oklch(60.7% 0.04168 349.30)",
+          "oklch(72.1% 0.04168 349.30)",
+          "oklch(83.6% 0.04168 349.30)",
+          "oklch(95.0% 0.04168 349.30)"
+        ]
+      },
+      "secondary-border": {
+        "role": "neutral",
+        "displayName": "Secondary Border",
+        "tonalRamp": [
+          "oklch(15.0% 0.01743 349.55)",
+          "oklch(26.4% 0.01743 349.55)",
+          "oklch(37.9% 0.01743 349.55)",
+          "oklch(49.3% 0.01743 349.55)",
+          "oklch(60.7% 0.01743 349.55)",
+          "oklch(72.1% 0.01743 349.55)",
+          "oklch(83.6% 0.01743 349.55)",
+          "oklch(95.0% 0.01743 349.55)"
+        ]
+      },
+      "field-focus": {
+        "role": "neutral",
+        "displayName": "Field Focus",
+        "tonalRamp": [
+          "oklch(15.0% 0.06833 350.04)",
+          "oklch(26.4% 0.06833 350.04)",
+          "oklch(37.9% 0.06833 350.04)",
+          "oklch(49.3% 0.06833 350.04)",
+          "oklch(60.7% 0.06833 350.04)",
+          "oklch(72.1% 0.06833 350.04)",
+          "oklch(83.6% 0.06833 350.04)",
+          "oklch(95.0% 0.06833 350.04)"
+        ]
+      },
+      "field-placeholder": {
+        "role": "neutral",
+        "displayName": "Field Placeholder",
+        "tonalRamp": [
+          "oklch(15.0% 0.01609 318.69)",
+          "oklch(26.4% 0.01609 318.69)",
+          "oklch(37.9% 0.01609 318.69)",
+          "oklch(49.3% 0.01609 318.69)",
+          "oklch(60.7% 0.01609 318.69)",
+          "oklch(72.1% 0.01609 318.69)",
+          "oklch(83.6% 0.01609 318.69)",
+          "oklch(95.0% 0.01609 318.69)"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "tonalRamp": [
+          "oklch(15.0% 0.00672 28.84)",
+          "oklch(26.4% 0.00672 28.84)",
+          "oklch(37.9% 0.00672 28.84)",
+          "oklch(49.3% 0.00672 28.84)",
+          "oklch(60.7% 0.00672 28.84)",
+          "oklch(72.1% 0.00672 28.84)",
+          "oklch(83.6% 0.00672 28.84)",
+          "oklch(95.0% 0.00672 28.84)"
+        ]
+      },
+      "community-text": {
+        "role": "primary",
+        "displayName": "Community Text",
+        "tonalRamp": [
+          "oklch(15.0% 0.06535 352.49)",
+          "oklch(26.4% 0.06535 352.49)",
+          "oklch(37.9% 0.06535 352.49)",
+          "oklch(49.3% 0.06535 352.49)",
+          "oklch(60.7% 0.06535 352.49)",
+          "oklch(72.1% 0.06535 352.49)",
+          "oklch(83.6% 0.06535 352.49)",
+          "oklch(95.0% 0.06535 352.49)"
+        ]
+      },
+      "free-strip": {
+        "role": "neutral",
+        "displayName": "Free Strip",
+        "tonalRamp": [
+          "oklch(15.0% 0.01106 348.44)",
+          "oklch(26.4% 0.01106 348.44)",
+          "oklch(37.9% 0.01106 348.44)",
+          "oklch(49.3% 0.01106 348.44)",
+          "oklch(60.7% 0.01106 348.44)",
+          "oklch(72.1% 0.01106 348.44)",
+          "oklch(83.6% 0.01106 348.44)",
+          "oklch(95.0% 0.01106 348.44)"
+        ]
+      },
+      "free-strip-text": {
+        "role": "neutral",
+        "displayName": "Free Strip Text",
+        "tonalRamp": [
+          "oklch(15.0% 0.05530 349.81)",
+          "oklch(26.4% 0.05530 349.81)",
+          "oklch(37.9% 0.05530 349.81)",
+          "oklch(49.3% 0.05530 349.81)",
+          "oklch(60.7% 0.05530 349.81)",
+          "oklch(72.1% 0.05530 349.81)",
+          "oklch(83.6% 0.05530 349.81)",
+          "oklch(95.0% 0.05530 349.81)"
+        ]
+      },
+      "footer": {
+        "role": "neutral",
+        "displayName": "Footer",
+        "tonalRamp": [
+          "oklch(15.0% 0.00553 3.34)",
+          "oklch(26.4% 0.00553 3.34)",
+          "oklch(37.9% 0.00553 3.34)",
+          "oklch(49.3% 0.00553 3.34)",
+          "oklch(60.7% 0.00553 3.34)",
+          "oklch(72.1% 0.00553 3.34)",
+          "oklch(83.6% 0.00553 3.34)",
+          "oklch(95.0% 0.00553 3.34)"
+        ]
+      },
+      "portrait-paper": {
+        "role": "neutral",
+        "displayName": "Portrait Paper",
+        "tonalRamp": [
+          "oklch(15.0% 0.01458 64.33)",
+          "oklch(26.4% 0.01458 64.33)",
+          "oklch(37.9% 0.01458 64.33)",
+          "oklch(49.3% 0.01458 64.33)",
+          "oklch(60.7% 0.01458 64.33)",
+          "oklch(72.1% 0.01458 64.33)",
+          "oklch(83.6% 0.01458 64.33)",
+          "oklch(95.0% 0.01458 64.33)"
+        ]
+      },
+      "no-photo": {
+        "role": "neutral",
+        "displayName": "No Photo",
+        "tonalRamp": [
+          "oklch(15.0% 0.00921 341.81)",
+          "oklch(26.4% 0.00921 341.81)",
+          "oklch(37.9% 0.00921 341.81)",
+          "oklch(49.3% 0.00921 341.81)",
+          "oklch(60.7% 0.00921 341.81)",
+          "oklch(72.1% 0.00921 341.81)",
+          "oklch(83.6% 0.00921 341.81)",
+          "oklch(95.0% 0.00921 341.81)"
+        ]
+      },
+      "no-photo-foreground": {
+        "role": "neutral",
+        "displayName": "No Photo Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.05694 343.62)",
+          "oklch(26.4% 0.05694 343.62)",
+          "oklch(37.9% 0.05694 343.62)",
+          "oklch(49.3% 0.05694 343.62)",
+          "oklch(60.7% 0.05694 343.62)",
+          "oklch(72.1% 0.05694 343.62)",
+          "oklch(83.6% 0.05694 343.62)",
+          "oklch(95.0% 0.05694 343.62)"
+        ]
+      },
+      "demo-label": {
+        "role": "neutral",
+        "displayName": "Demo Label",
+        "tonalRamp": [
+          "oklch(15.0% 0.00000 89.88)",
+          "oklch(26.4% 0.00000 89.88)",
+          "oklch(37.9% 0.00000 89.88)",
+          "oklch(49.3% 0.00000 89.88)",
+          "oklch(60.7% 0.00000 89.88)",
+          "oklch(72.1% 0.00000 89.88)",
+          "oklch(83.6% 0.00000 89.88)",
+          "oklch(95.0% 0.00000 89.88)"
+        ]
+      },
+      "demo-label-foreground": {
+        "role": "neutral",
+        "displayName": "Demo Label Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.03606 48.97)",
+          "oklch(26.4% 0.03606 48.97)",
+          "oklch(37.9% 0.03606 48.97)",
+          "oklch(49.3% 0.03606 48.97)",
+          "oklch(60.7% 0.03606 48.97)",
+          "oklch(72.1% 0.03606 48.97)",
+          "oklch(83.6% 0.03606 48.97)",
+          "oklch(95.0% 0.03606 48.97)"
+        ]
+      },
+      "member-label-foreground": {
+        "role": "semantic",
+        "displayName": "Member Label Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.04539 143.70)",
+          "oklch(26.4% 0.04539 143.70)",
+          "oklch(37.9% 0.04539 143.70)",
+          "oklch(49.3% 0.04539 143.70)",
+          "oklch(60.7% 0.04539 143.70)",
+          "oklch(72.1% 0.04539 143.70)",
+          "oklch(83.6% 0.04539 143.70)",
+          "oklch(95.0% 0.04539 143.70)"
+        ]
+      },
+      "status-pending": {
+        "role": "semantic",
+        "displayName": "Status Pending",
+        "tonalRamp": [
+          "oklch(15.0% 0.00910 78.28)",
+          "oklch(26.4% 0.00910 78.28)",
+          "oklch(37.9% 0.00910 78.28)",
+          "oklch(49.3% 0.00910 78.28)",
+          "oklch(60.7% 0.00910 78.28)",
+          "oklch(72.1% 0.00910 78.28)",
+          "oklch(83.6% 0.00910 78.28)",
+          "oklch(95.0% 0.00910 78.28)"
+        ]
+      },
+      "status-pending-foreground": {
+        "role": "semantic",
+        "displayName": "Status Pending Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.06036 76.77)",
+          "oklch(26.4% 0.06036 76.77)",
+          "oklch(37.9% 0.06036 76.77)",
+          "oklch(49.3% 0.06036 76.77)",
+          "oklch(60.7% 0.06036 76.77)",
+          "oklch(72.1% 0.06036 76.77)",
+          "oklch(83.6% 0.06036 76.77)",
+          "oklch(95.0% 0.06036 76.77)"
+        ]
+      },
+      "status-accepted": {
+        "role": "semantic",
+        "displayName": "Status Accepted",
+        "tonalRamp": [
+          "oklch(15.0% 0.01259 149.25)",
+          "oklch(26.4% 0.01259 149.25)",
+          "oklch(37.9% 0.01259 149.25)",
+          "oklch(49.3% 0.01259 149.25)",
+          "oklch(60.7% 0.01259 149.25)",
+          "oklch(72.1% 0.01259 149.25)",
+          "oklch(83.6% 0.01259 149.25)",
+          "oklch(95.0% 0.01259 149.25)"
+        ]
+      },
+      "status-accepted-foreground": {
+        "role": "semantic",
+        "displayName": "Status Accepted Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.06131 154.24)",
+          "oklch(26.4% 0.06131 154.24)",
+          "oklch(37.9% 0.06131 154.24)",
+          "oklch(49.3% 0.06131 154.24)",
+          "oklch(60.7% 0.06131 154.24)",
+          "oklch(72.1% 0.06131 154.24)",
+          "oklch(83.6% 0.06131 154.24)",
+          "oklch(95.0% 0.06131 154.24)"
+        ]
+      },
+      "status-declined": {
+        "role": "semantic",
+        "displayName": "Status Declined",
+        "tonalRamp": [
+          "oklch(15.0% 0.00801 357.81)",
+          "oklch(26.4% 0.00801 357.81)",
+          "oklch(37.9% 0.00801 357.81)",
+          "oklch(49.3% 0.00801 357.81)",
+          "oklch(60.7% 0.00801 357.81)",
+          "oklch(72.1% 0.00801 357.81)",
+          "oklch(83.6% 0.00801 357.81)",
+          "oklch(95.0% 0.00801 357.81)"
+        ]
+      },
+      "status-declined-foreground": {
+        "role": "semantic",
+        "displayName": "Status Declined Foreground",
+        "tonalRamp": [
+          "oklch(15.0% 0.04126 354.08)",
+          "oklch(26.4% 0.04126 354.08)",
+          "oklch(37.9% 0.04126 354.08)",
+          "oklch(49.3% 0.04126 354.08)",
+          "oklch(60.7% 0.04126 354.08)",
+          "oklch(72.1% 0.04126 354.08)",
+          "oklch(83.6% 0.04126 354.08)",
+          "oklch(95.0% 0.04126 354.08)"
+        ]
+      },
+      "chat-received": {
+        "role": "neutral",
+        "displayName": "Chat Received",
+        "tonalRamp": [
+          "oklch(15.0% 0.01108 348.44)",
+          "oklch(26.4% 0.01108 348.44)",
+          "oklch(37.9% 0.01108 348.44)",
+          "oklch(49.3% 0.01108 348.44)",
+          "oklch(60.7% 0.01108 348.44)",
+          "oklch(72.1% 0.01108 348.44)",
+          "oklch(83.6% 0.01108 348.44)",
+          "oklch(95.0% 0.01108 348.44)"
+        ]
+      },
+      "overlay": {
+        "role": "neutral",
+        "displayName": "Overlay",
+        "tonalRamp": [
+          "oklch(15.0% 0.03093 338.48)",
+          "oklch(26.4% 0.03093 338.48)",
+          "oklch(37.9% 0.03093 338.48)",
+          "oklch(49.3% 0.03093 338.48)",
+          "oklch(60.7% 0.03093 338.48)",
+          "oklch(72.1% 0.03093 338.48)",
+          "oklch(83.6% 0.03093 338.48)",
+          "oklch(95.0% 0.03093 338.48)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Compact English discovery introduction."
+      },
+      "display-hindi": {
+        "displayName": "Display Hindi",
+        "purpose": "Compact Hindi discovery introduction."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "English focused-page heading."
+      },
+      "headline-hindi": {
+        "displayName": "Headline Hindi",
+        "purpose": "Hindi focused-page heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Profile name, with source-defined responsive sizes."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "English-default body family order."
+      },
+      "body-hindi": {
+        "displayName": "Body Hindi",
+        "purpose": "Hindi-default body family order."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field label."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Primary and secondary action text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "slider-thumb",
+        "value": "0 1px 4px #4f2d4540",
+        "purpose": "Draggable slider thumb."
+      },
+      {
+        "name": "right-sheet",
+        "value": "-12px 0 35px #36223020",
+        "purpose": "Detail, help and chat sheets."
+      },
+      {
+        "name": "interest-dialog",
+        "value": "0 20px 60px #36223035",
+        "purpose": "Central conversation-start dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "card-border",
+        "value": "border-color 180ms",
+        "purpose": "Profile hover state without lift."
+      },
+      {
+        "name": "sheet-open",
+        "value": "500ms ease-in-out",
+        "purpose": "Directional opening from the Radix sheet primitive; unrendered."
+      },
+      {
+        "name": "sheet-close",
+        "value": "300ms ease-in-out",
+        "purpose": "Directional closing from the Radix sheet primitive; unrendered."
+      },
+      {
+        "name": "loading-spin",
+        "value": "1s linear infinite",
+        "purpose": "Loading icon rotation."
+      },
+      {
+        "name": "reduced-motion",
+        "value": ".001ms",
+        "purpose": "Animation and transition durations under prefers-reduced-motion; smooth scrolling becomes auto."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-header",
+        "value": "1600px"
+      },
+      {
+        "name": "two-column-profiles",
+        "value": "1200px"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "960px"
+      },
+      {
+        "name": "mobile-filter-sheet",
+        "value": "760px"
+      },
+      {
+        "name": "single-column-phone",
+        "value": "500px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "description": "Publish, accept or continue with the plum primary action.",
+      "html": "<button class=\"ds-primary\">आगे बढ़ें</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:11px 19px;border-radius:7px;border:1px solid var(--primary,#68384c);font-size:14px;font-weight:600;line-height:1.5;text-align:center;cursor:pointer;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;background:var(--primary,#68384c);color:var(--primary-foreground,#fff)}.ds-primary:hover{background:#532b3c;border-color:#532b3c}.ds-primary:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}.ds-primary:disabled{opacity:.55;cursor:not-allowed}",
+      "refersTo": "button-primary"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "description": "White action used for profile details and secondary choices.",
+      "html": "<button class=\"ds-secondary\">प्रोफ़ाइल देखें</button>",
+      "css": ".ds-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:11px 19px;border-radius:7px;border:1px solid var(--primary,#68384c);font-size:14px;font-weight:600;line-height:1.5;text-align:center;cursor:pointer;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;background:var(--card,#fff);color:var(--primary,#68384c);border-color:#ded0d6}.ds-secondary:hover{background:#f7f0f3}.ds-secondary:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}.ds-secondary:disabled{opacity:.55;cursor:not-allowed}",
+      "refersTo": "button-secondary"
+    },
+    {
+      "name": "Text action",
+      "kind": "button",
+      "description": "Quiet inline action with underline on hover.",
+      "html": "<button class=\"ds-text\">फ़िल्टर रीसेट करें</button>",
+      "css": ".ds-text{border:0;background:none;color:var(--primary,#68384c);font-size:14px;font-weight:500;padding:3px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}.ds-text:hover{text-decoration:underline;text-underline-offset:3px}.ds-text:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}",
+      "refersTo": "button-text"
+    },
+    {
+      "name": "Text field",
+      "kind": "input",
+      "description": "Labelled editable field with the existing border and focus treatment.",
+      "html": "<label class=\"ds-label\" for=\"ds-name\">पूरा नाम</label><input class=\"ds-input\" id=\"ds-name\" placeholder=\"आपका नाम\">",
+      "css": ".ds-label{display:block;margin-bottom:7px;font-size:14px;font-weight:500;color:#4e4049;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}.ds-input{font-family:'Noto Sans Devanagari','DM Sans',sans-serif;font-size:16px;color:var(--foreground,#2d2630);width:100%;border:1px solid var(--input,#d8d2d5);border-radius:7px;padding:11px 12px;background:var(--card,#fff);min-height:44px;caret-color:var(--primary,#68384c)}.ds-input::placeholder{color:#777079}.ds-input:focus{border-color:#8c5d73}.ds-input:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}",
+      "refersTo": "input-field"
+    },
+    {
+      "name": "Line navigation",
+      "kind": "nav",
+      "description": "Desktop active-tab line navigation; production uses Radix tabs.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"मुख्य नेविगेशन\"><button class=\"ds-tab ds-active\" aria-current=\"page\">रिश्ते खोजें</button><button class=\"ds-tab\">मेरी पसंद</button><button class=\"ds-tab\">रुचियाँ</button></nav>",
+      "css": ".ds-nav{display:flex;align-items:stretch;gap:25px;height:92px}.ds-tab{font-family:'Noto Sans Devanagari','DM Sans',sans-serif;position:relative;border:1px solid transparent;background:transparent;color:#726770;font-size:15px;font-weight:500;padding:0 1px;cursor:pointer}.ds-tab:hover{color:var(--foreground,#2d2630)}.ds-tab.ds-active{color:var(--primary,#68384c)}.ds-active::after{content:\"\";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--primary,#68384c)}.ds-tab:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}"
+    },
+    {
+      "name": "Community chips",
+      "kind": "chip",
+      "description": "Horizontally browsable community selection.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-selected\" aria-pressed=\"true\">सभी</button><button class=\"ds-chip\" aria-pressed=\"false\">कान्यकुब्ज</button><button class=\"ds-chip\" aria-pressed=\"false\">सरयूपारीण</button></div>",
+      "css": ".ds-chips{display:flex;gap:9px;overflow-x:auto}.ds-chip{font-family:'Noto Sans Devanagari','DM Sans',sans-serif;font-size:14px;white-space:nowrap;border:1px solid transparent;background:transparent;padding:7px 15px;border-radius:20px;color:#73626d;line-height:1.5;cursor:pointer}.ds-chip:hover{background:var(--secondary,#f0e8eb)}.ds-chip.ds-selected{background:var(--primary,#68384c);color:var(--primary-foreground,#fff)}.ds-chip:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}",
+      "refersTo": "community-chip"
+    },
+    {
+      "name": "Profile card",
+      "kind": "card",
+      "description": "The implemented no-photo card fallback, with illustrative member text; production portraits use the catalog asset or a volunteered upload.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-portrait\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"></circle><path d=\"M20 21a8 8 0 0 0-16 0\"></path></svg><span>Photo not added / फोटो नहीं है</span><span class=\"ds-member\">सदस्य प्रोफ़ाइल</span></div><div class=\"ds-card-body\"><button class=\"ds-name\"><h3>सदस्य का नाम</h3></button><p class=\"ds-meta\">28 वर्ष · 165 cm · अविवाहित</p><p class=\"ds-community\">कान्यकुब्ज · शाण्डिल्य गोत्र</p><div class=\"ds-facts\"><p>नई दिल्ली</p><p>शिक्षा और पेशा</p></div><button class=\"ds-view\">प्रोफ़ाइल देखें</button></div></article>",
+      "css": ".ds-card{max-width:330px;background:var(--card,#fff);color:var(--foreground,#2d2630);border:1px solid #e2dcdd;border-radius:12px;overflow:hidden;transition:border-color 180ms;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}.ds-card:hover{border-color:#b293a1}.ds-portrait{position:relative;aspect-ratio:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#eee7eb;color:#745065;overflow:hidden}.ds-portrait>svg{width:55px;height:55px}.ds-portrait>span{font-size:12px}.ds-portrait>.ds-member{position:absolute;left:12px;top:12px;background:#fffffff0;border-radius:5px;color:#495f48;font-size:11px;padding:5px 8px;line-height:1.4}.ds-card-body{padding:19px 17px 17px}.ds-name{border:0;background:none;padding:0;text-align:left;color:inherit;cursor:pointer}.ds-name h3{margin:0;font-family:\"Cormorant Garamond\",serif;font-size:1.65rem;font-weight:600;letter-spacing:-.015em;line-height:1.15}.ds-name:hover{color:var(--primary,#68384c)}.ds-name:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}.ds-meta{font-size:12px;color:#796e75;margin:7px 0 0;line-height:1.7}.ds-community{font-size:12px;color:#75495c;margin:7px 0 0;font-weight:500;line-height:1.7}.ds-facts{border-top:1px solid #eee8ea;margin-top:15px;padding-top:13px;display:flex;flex-direction:column;gap:7px}.ds-facts p{margin:0;font-size:12px;color:#6d626a;line-height:1.5}.ds-view{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:11px 19px;border-radius:7px;border:1px solid var(--primary,#68384c);font-size:14px;font-weight:600;line-height:1.5;text-align:center;cursor:pointer;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;width:100%;margin-top:17px;min-height:39px;padding:8px 10px;font-size:13px;background:var(--card,#fff);color:var(--primary,#68384c);border-color:#ded0d6}.ds-view:hover{background:#f7f0f3}.ds-view:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}@media(max-width:760px){.ds-portrait{aspect-ratio:1.12}}@media(prefers-reduced-motion:reduce){.ds-card{transition-duration:.001ms}}",
+      "refersTo": "profile-card"
+    },
+    {
+      "name": "Interest action",
+      "kind": "button",
+      "description": "Compact heart action adjoining View profile.",
+      "html": "<button class=\"ds-interest\" aria-label=\"रुचि भेजें\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5\"></path></svg></button>",
+      "css": ".ds-interest{width:42px;min-height:39px;border:1px solid #e4d6de;border-radius:6px;background:#f7f0f3;color:#8b5a70;display:grid;place-items:center;cursor:pointer}.ds-interest:hover{background:#eee0e7}.ds-interest:focus-visible{outline:3px solid var(--ring,#9b6e80);outline-offset:3px}.ds-interest:disabled{opacity:.55;cursor:not-allowed}"
+    },
+    {
+      "name": "Interest status",
+      "kind": "chip",
+      "description": "Pending, accepted and declined use restrained semantic labels.",
+      "html": "<div class=\"ds-statuses\"><span class=\"ds-status\">जवाब का इंतज़ार</span><span class=\"ds-status ds-accepted\">स्वीकार की गई</span><span class=\"ds-status ds-declined\">अस्वीकार की गई</span></div>",
+      "css": ".ds-statuses{display:flex;flex-wrap:wrap;gap:8px;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;}.ds-status{display:inline-block;padding:3px 8px;border-radius:5px;background:#f1ede7;font-size:12px;color:#755d39;margin-top:12px}.ds-accepted{background:#e7efe8;color:#3f664c}.ds-declined{background:#eee7e9;color:#765964}",
+      "refersTo": "status-accepted"
+    },
+    {
+      "name": "Conversation bubbles",
+      "kind": "custom",
+      "description": "Received messages align left; sent messages align right.",
+      "html": "<div class=\"ds-conversation\"><div class=\"ds-bubble\"><p>नमस्ते!</p><time>6 अक्तूबर, 10:30</time></div><div class=\"ds-bubble ds-mine\"><p>नमस्ते, आपसे बात करके अच्छा लगा।</p><time>6 अक्तूबर, 10:31</time></div></div>",
+      "css": ".ds-conversation{display:flex;flex-direction:column;gap:15px;font-family:'Noto Sans Devanagari','DM Sans',sans-serif;color:var(--foreground,#2d2630)}.ds-bubble{background:#eee5e9;border-radius:11px;padding:12px 15px;max-width:85%;width:max-content;font-size:14px;align-self:flex-start}.ds-bubble.ds-mine{background:var(--primary,#68384c);color:var(--primary-foreground,#fff);align-self:flex-end}.ds-bubble p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.ds-bubble time{display:block;font-size:10px;opacity:.8;margin-top:6px}",
+      "refersTo": "chat-sent"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Indian Family Album",
+    "overview": "Vaidik Milan pairs the warmth of a family album with a light, functional matching workspace. Plum accents, paper-like backgrounds, fine dividers and serif identity type make profiles feel personal. Portraits carry the visual weight; filters and profile facts stay immediately useful. The original Vaidik Milan identity is the brand authority.\n\nHindi is the default language, with an English option. Devanagari receives its own sans and serif fonts, sizes and line heights. Free access, visible fictional-demo labels and explicit sharing consent are durable product commitments that shape interface copy and hierarchy.\n\nThis document is source-derived from `app/globals.css`, `app/milan.tsx` and the local UI primitives. Responsive behavior and image framing described here are **unrendered assumptions**: no browser screenshots or computed-style sampling were available. The parent implementation reports that typecheck and the Worker build pass; those checks do not establish visual rendering. Frontmatter values record current source, including the final CSS overrides. Sidecar tonal ramps are synthesized panel previews, not application tokens.",
+    "keyCharacteristics": [
+      "Warm plum and off-white paper with white working surfaces.",
+      "Serif identity and headings with readable bilingual sans text.",
+      "Portrait-led profiles with compact facts and visible provenance.",
+      "Flat surfaces at rest; stronger depth reserved for overlays.",
+      "Immediate community browsing and separate community and gotra controls."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Use the existing plum for identity and selection. Reserve green, ochre and destructive red for their current status roles.",
+        "section": "colors"
+      },
+      {
+        "name": "The Script Respect Rule",
+        "body": "Apply the existing language-specific font order and heading metrics whenever adding a bilingual heading. Allow Hindi labels to wrap without clipping.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Workspace Rule",
+        "body": "Keep resting profile surfaces flat. Use the established shadows for controls and overlays where depth explains interaction.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use plum, serif identity type and warm paper surfaces to retain the family-album character.",
+      "**Do** keep community and gotra distinct, immediately available filter concepts.",
+      "**Do** preserve Hindi-specific fonts and metrics, with a visible English switch.",
+      "**Do** keep fictional portrait provenance and member self-reporting clear in the catalog and detail views.",
+      "**Do** keep publishing consent explicit and every matching feature free.",
+      "**Do** preserve the final portrait aspect ratios and three-by-two image translation relationship.",
+      "**Do** verify responsive wrapping and generated-image framing in a browser before claiming rendered visual validation."
+    ],
+    "donts": [
+      "**Don't** add paid contact gates, premium badges or upsell surfaces.",
+      "**Don't** imply that a demo person is a real member or that a member label means independently verified identity.",
+      "**Don't** infer community or gotra from a surname or turn a filter into religious certification.",
+      "**Don't** populate the catalog with scraped social caste, gotra or contact information.",
+      "**Don't** replace the original Vaidik Milan identity with a reference site's logo or name.",
+      "**Don't** add heavy shadows to resting profile cards or obscure the working filters with an oversized introduction."
+    ]
+  }
+}
