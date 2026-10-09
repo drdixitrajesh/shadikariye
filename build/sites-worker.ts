@@ -5,6 +5,18 @@ import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+    const requestUrl = new URL(request.url);
+    if (requestUrl.pathname === "/api/health") {
+      if (!["GET", "HEAD"].includes(request.method)) {
+        return new Response(null, { status: 405, headers: { Allow: "GET, HEAD" } });
+      }
+      const response = Response.json({
+        status: "ok",
+        mode: env.STANDALONE_MODE ?? "managed",
+        commit: env.DEPLOYMENT_SHA ?? null,
+      }, { headers: { "Cache-Control": "no-store" } });
+      return request.method === "HEAD" ? new Response(null, response) : response;
+    }
     if (env.STANDALONE_MODE === "demo") {
       const url = new URL(request.url);
       if (url.hostname === "www.managelove.com" || (url.hostname === "managelove.com" && url.protocol !== "https:")) {

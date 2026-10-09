@@ -8,7 +8,13 @@
   "no_bundle": true,
   "rules": [{ "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }],
   "assets": { "directory": "dist/client" },
-  "vars": { "STANDALONE_MODE": "demo" },
+  "vars": { "STANDALONE_MODE": "demo", "TURNSTILE_SITE_KEY": "0x4AAAAAAFR5uwPEgcKjcCzJ" },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "managelove-test-portal",
+    "database_id": "ea008378-69be-45ef-b609-07b18e599f81",
+    "migrations_dir": "drizzle"
+  }],
   "workers_dev": true,
   "routes": [
     { "pattern": "managelove.com/*", "zone_name": "managelove.com" },

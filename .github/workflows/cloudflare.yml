@@ -1,0 +1,73 @@
+name: ManageLove Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Cloudflare operation on reviewed main
+        type: choice
+        options: [deploy, status, provision]
+        default: deploy
+      free_budget_confirmed:
+        description: Account owner has verified a $0 Actions budget with stop-usage enabled
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: managelove-production
+  cancel-in-progress: false
+
+jobs:
+  cloudflare:
+    # Private hosted CI can incur overage charges. Keep it gated until the owner
+    # verifies the $0 account budget, or use native Cloudflare Free Builds instead.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (vars.MANAGELOVE_FREE_CI_ENABLED == 'true' ||
+       (github.event_name == 'workflow_dispatch' && inputs.free_budget_confirmed))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CLOUDFLARE_ACCOUNT_ID: 0806706663c74737529a2e2f9de75440
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 25.2.1
+      - name: Install pinned dependencies
+        run: npx --yes pnpm@11.25.0 install --frozen-lockfile
+      - name: Build and verify
+        if: github.event_name == 'push' || inputs.operation == 'deploy'
+        run: npm run verify:cloudflare
+      - name: Confirm main has not moved
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest="$(gh api repos/drdixitrajesh/shadikariye/commits/main --jq .sha)"
+          test "$latest" = "$GITHUB_SHA" || { echo 'A newer main commit exists; this run will not change production.'; exit 1; }
+      - name: Deploy reviewed main
+        if: github.event_name == 'push' || inputs.operation == 'deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        run: npm run deploy:cloudflare
+      - name: Inspect Cloudflare resources
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'status'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        run: npm run cloudflare:status
+      - name: Provision the dedicated database
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'provision'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+        run: npm run cloudflare:provision

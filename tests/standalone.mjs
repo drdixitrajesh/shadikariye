@@ -13,13 +13,19 @@ const mf=new Miniflare({
   modules:workerModules,modulesRoot:resolve('dist/server'),
   modulesRules:[{type:'ESModule',include:['**/*.js','**/*.mjs']}],
   compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],
-  bindings:{STANDALONE_MODE:'demo',ADMIN_EMAILS:'admin@example.com'},
+  bindings:{STANDALONE_MODE:'demo',ADMIN_EMAILS:'admin@example.com',DEPLOYMENT_SHA:'0123456789012345678901234567890123456789'},
   outboundService:()=>{throw new Error('Standalone demo must not invoke paid external services');},
 });
 const forged={'oai-authenticated-user-id':'admin','oai-authenticated-user-email':'admin@example.com'};
 let checks=0;
 function check(value,message){assert.ok(value,message);checks++;}
 try{
+  const health=await mf.dispatchFetch('https://managelove.com/api/health');
+  check(health.status===200&&health.headers.get('cache-control')==='no-store','Deployment health is available without authentication and is never cached');
+  check(JSON.stringify(await health.json())===JSON.stringify({status:'ok',mode:'demo',commit:'0123456789012345678901234567890123456789'}),'Health identifies the deployed commit without disclosing credentials');
+  const healthHead=await mf.dispatchFetch('https://managelove.com/api/health',{method:'HEAD'});
+  check(healthHead.status===200&&(await healthHead.text())==='','Health supports body-free HEAD checks');
+  check((await mf.dispatchFetch('https://managelove.com/api/health',{method:'POST'})).status===405,'Health rejects writes');
   for(const headers of [{},forged]){
     let r=await mf.dispatchFetch('https://managelove.com/');
     check(r.status===200,'Homepage renders without database or photo bindings');
