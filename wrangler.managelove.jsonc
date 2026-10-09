@@ -8,7 +8,10 @@
   "no_bundle": true,
   "rules": [{ "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }],
   "assets": { "directory": "dist/client" },
-  "vars": { "STANDALONE_MODE": "demo", "TURNSTILE_SITE_KEY": "0x4AAAAAAFR5uwPEgcKjcCzJ" },
+  "vars": { "STANDALONE_MODE": "test-portal", "TURNSTILE_SITE_KEY": "0x4AAAAAAFR5uwPEgcKjcCzJ" },
+  "durable_objects": {"bindings":[{"name":"PASSWORD_SERVICE","class_name":"PortalPasswordService"}]},
+  "migrations": [{"tag":"portal-password-v1","new_sqlite_classes":["PortalPasswordService"]}],
+  "triggers": {"crons":["0 0 * * *"]},
   "d1_databases": [{
     "binding": "DB",
     "database_name": "managelove-test-portal",
@@ -23,3 +26,4 @@
   "preview_urls": false,
   "observability": { "enabled": false }
 }
+

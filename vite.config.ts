@@ -17,6 +17,8 @@ const managedLinux = readExecutionProfile() === "managed-linux";
 const localBindingConfig = {
   main: "./build/sites-worker.ts",
   compatibility_flags: ["nodejs_compat"],
+  durable_objects:{bindings:[{name:'PASSWORD_SERVICE',class_name:'PortalPasswordService'}]},
+  migrations:[{tag:'portal-password-v1',new_sqlite_classes:['PortalPasswordService']}],
   d1_databases: d1
     ? [
         {

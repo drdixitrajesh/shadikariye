@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { ACCOUNT_ID, WORKER_NAME, requireFreePlan, cloudflare } from './cloudflare-api.mjs';
 import ts from 'typescript';
+import {randomBytes} from 'node:crypto';
 
 const parsed = ts.parseConfigFileTextToJson('wrangler.managelove.jsonc', readFileSync('wrangler.managelove.jsonc', 'utf8'));
 if (parsed.error) throw new Error('Invalid Wrangler JSONC configuration.');
@@ -21,6 +22,15 @@ if ((process.env.GITHUB_REF && process.env.GITHUB_REF !== 'refs/heads/main') ||
 }
 if (!existsSync('dist/server/index.js') || !existsSync('dist/client')) throw new Error('Run npm run verify:cloudflare first.');
 await requireFreePlan();
+// Provision the encryption key once inside the authorized native build. Secret
+// values are sent only over Wrangler stdin, never printed, committed or rotated.
+const settings=await cloudflare(`/accounts/${ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/settings`);
+if(!(settings.bindings??[]).some(binding=>binding.name==='TURNSTILE_SECRET_KEY'&&binding.type==='secret_text'))throw new Error('The configured Turnstile secret is missing; deployment stopped.');
+if(!(settings.bindings??[]).some(binding=>binding.name==='PORTAL_KEY'&&binding.type==='secret_text')){
+  const result=spawnSync(process.execPath,['--import','./scripts/sites-env.mjs','node_modules/wrangler/bin/wrangler.js','secret','put','PORTAL_KEY','--config','wrangler.managelove.jsonc'],{input:randomBytes(32).toString('hex')+'\n',stdio:['pipe','pipe','pipe'],env:{...process.env,WRANGLER_SEND_METRICS:'false',WRANGLER_WRITE_LOGS:'false'}});
+  if(result.error||result.status!==0)throw new Error('Secure MFA key provisioning failed; deployment stopped.');
+  console.log('MFA encryption key provisioned securely.');
+}
 
 function wrangler(args, extraEnv = {}) {
   const result = spawnSync(process.execPath, [
@@ -52,3 +62,4 @@ for (const url of ['https://managelove.com/api/health', 'https://managelove.soft
   } catch { /* The public edge may reject an automated request; report it below. */ }
 }
 if (!verified) throw new Error('Worker deployed, but the public commit check did not pass. Check /api/health in the browser before calling it live.');
+

@@ -9,7 +9,7 @@ export function sixMonthsAfter(timestamp:number){
 
 // One atomic sweep before every website request, including anonymous reads.
 // The same sweep can be attached to a Cron Trigger on a standalone Worker.
-export async function expireProfiles(database:D1Database,photos:R2Bucket,now=Date.now()){
+export async function expireProfiles(database:D1Database,photos:{delete(keys:string|string[]):Promise<unknown>},now=Date.now()){
   const expired='SELECT id FROM profiles WHERE expires_at<=?';
   const owners='SELECT owner FROM profiles WHERE expires_at<=?';
   if(await database.prepare('SELECT 1 FROM profiles WHERE expires_at<=? LIMIT 1').bind(now).first()){

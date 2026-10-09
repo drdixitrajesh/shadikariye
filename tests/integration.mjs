@@ -31,7 +31,7 @@ try{
   const db=await mf.getD1Database('DB');
   for(const statement of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort().map(f=>readFileSync('drizzle/'+f,'utf8')).join(';').replaceAll('--> statement-breakpoint','').split(';').filter(s=>s.trim()))await db.prepare(statement).run();
   const migrationDb=await mf.getD1Database('MIGRATION');
-  for(const statement of readdirSync('drizzle').filter(f=>f.endsWith('.sql')&&!f.startsWith('0004_')).sort().map(f=>readFileSync('drizzle/'+f,'utf8')).join(';').replaceAll('--> statement-breakpoint','').split(';').filter(s=>s.trim()))await migrationDb.prepare(statement).run();
+  for(const statement of readdirSync('drizzle').filter(f=>f.endsWith('.sql')&&!f.startsWith('0004_')&&!f.startsWith('0005_')).sort().map(f=>readFileSync('drizzle/'+f,'utf8')).join(';').replaceAll('--> statement-breakpoint','').split(';').filter(s=>s.trim()))await migrationDb.prepare(statement).run();
   const legacyTime=Date.parse('2026-08-31T00:05:00+05:30');
   await migrationDb.prepare("INSERT INTO profiles(id,owner,data,updated_at) VALUES('legacy','legacy','{}',?)").bind(legacyTime).run();
   await migrationDb.prepare("INSERT INTO identity_locks(owner,profile_id,name,birth_date,aadhaar_last4,created_at) VALUES('legacy','legacy','Legacy Name','1998-01-01','1234',1)").run();

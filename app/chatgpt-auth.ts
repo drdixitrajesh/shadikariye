@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "cloudflare:workers";
+import {portalUser} from '@/lib/portal-context';
 
 export type ChatGPTUser = {
   userId: string;
@@ -22,6 +23,11 @@ const CALLBACK_PATH = "/callback";
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   // These identity headers are trusted only behind the managed Sites host.
   if (env.STANDALONE_MODE === "demo") return null;
+  if (env.STANDALONE_MODE === "test-portal") {
+    const user=portalUser();
+    if(!user||(user.role==='admin'&&!user.mfa))return null;
+    return {userId:user.id,displayName:user.username,email:'',fullName:null};
+  }
   const requestHeaders = await headers();
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
@@ -52,6 +58,7 @@ export async function requireChatGPTUser(
 }
 
 export function chatGPTSignInPath(returnTo: string): string {
+  if(env.STANDALONE_MODE==='test-portal')return '/login';
   const safeReturnTo = safeRelativeReturnPath(returnTo);
   return `${SIGN_IN_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
 }
