@@ -3,6 +3,7 @@ import {type PortalUser,portalUser} from './portal-context';
 const encoder=new TextEncoder();
 export const SESSION_COOKIE='__Host-managelove';
 export function isPortal(){return env.STANDALONE_MODE==='test-portal';}
+export function publicRegistration(){return isPortal()&&env.PUBLIC_REGISTRATION==='1';}
 export function randomToken(){return Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function digest(value:string){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(value))),b=>b.toString(16).padStart(2,'0')).join('');}
 export function portalJson(data:unknown,status=200,cookie?:string){const headers=new Headers({'Cache-Control':'no-store','Content-Type':'application/json; charset=utf-8','X-Content-Type-Options':'nosniff'});if(cookie)headers.set('Set-Cookie',cookie);return new Response(JSON.stringify(data),{status,headers});}
@@ -30,14 +31,14 @@ export async function makeSession(account:{id:string;role:string;session_version
   if(!inserted.meta.changes)throw new Error('account-access-revoked');
   return sessionCookie(token,duration);
 }
-export async function throttle(request:Request,scope:string,subject=''){
+export async function throttle(request:Request,scope:string,subject='',limits={ip:40,subject:12,global:160}){
   const now=Date.now(),window=Math.floor(now/900000);
   const ip=request.headers.get('CF-Connecting-IP')??'unknown-edge';
-  const keys=[{key:await digest(scope+':ip:'+ip),limit:40},{key:await digest(scope+':subject:'+subject),limit:12},{key:await digest(scope+':global'),limit:160}];
+  const keys=[{key:await digest(scope+':ip:'+ip),limit:limits.ip},{key:await digest(scope+':subject:'+subject),limit:limits.subject},{key:await digest(scope+':global'),limit:limits.global}];
   const rows=await env.DB!.batch(keys.map(k=>env.DB!.prepare('INSERT INTO portal_throttle (key,window,count) VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window=excluded.window THEN count+1 ELSE 1 END,window=excluded.window RETURNING count').bind(k.key,window)));
   return rows.every((row,i)=>Number((row.results?.[0] as {count?:number})?.count??999)<=keys[i].limit);
 }
-export async function turnstile(token:unknown,action:'login'|'activate'){
+export async function turnstile(token:unknown,action:'login'|'activate'|'register'){
   if(typeof token!=='string'||token.length<1||token.length>2048||!env.TURNSTILE_SECRET_KEY)return false;
   try{
     const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:env.TURNSTILE_SECRET_KEY,response:token}),signal:AbortSignal.timeout(10000)});
@@ -71,15 +72,29 @@ export async function handlePortal(request:Request){
   if(!path.startsWith('/api/portal/'))return null;
   if(!isPortal())return portalJson({error:'Standalone portal unavailable'},404);
   try{
-    if(path==='/api/portal/me'&&request.method==='GET')return portalJson({user:user?{id:user.id,username:user.username,role:user.role,testAccount:user.testAccount,mfa:user.mfa}:null,siteKey:env.TURNSTILE_SITE_KEY,mfaRequired:user?.role==='admin'&&!user.mfa});
+    if(path==='/api/portal/me'&&request.method==='GET')return portalJson({user:user?{id:user.id,username:user.username,role:user.role,testAccount:user.testAccount,mfa:user.mfa}:null,siteKey:env.TURNSTILE_SITE_KEY,mfaRequired:user?.role==='admin'&&!user.mfa,publicRegistration:publicRegistration()});
     if(!['GET','POST'].includes(request.method))return portalJson({error:'Method not allowed'},405);
     if(request.method==='POST'&&!sameOrigin(request))return portalJson({error:'Invalid request origin'},403);
+    if(path==='/api/portal/register'&&request.method==='POST'){
+      if(!publicRegistration())return portalJson({error:'Registration unavailable'},404);
+      const body=await readBody(request);
+      const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
+      if(!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username))return portalJson({error:'3–40 अक्षरों का यूज़रनेम चुनें: English letters, numbers, dot, underscore or hyphen.'},400);
+      if(body.termsAccepted!==true||!validPassword(body.password))return portalJson({error:'नियम स्वीकार करें और 16–128 अक्षरों का पासवर्ड चुनें। / Accept the terms and use a password of 16–128 characters.'},400);
+      if(!await throttle(request,'register',username,{ip:5,subject:3,global:80}))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
+      if(!await turnstile(body.turnstile,'register'))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
+      const id=crypto.randomUUID();
+      const {hash}=await passwordService(id,body.password.normalize('NFKC'));
+      const created=await env.DB!.prepare("INSERT INTO portal_accounts (id,username,role,password_hash,status,session_version,test_account,created_at) VALUES (?,?,'member',?,'active',0,0,?) ON CONFLICT(username) DO NOTHING").bind(id,username,hash,Date.now()).run();
+      if(!created.meta.changes)return portalJson({error:'यह यूज़रनेम पहले से है। दूसरा चुनें या लॉग इन करें। / Username already exists. Choose another or sign in.'},409);
+      return portalJson({ok:true},201,await makeSession({id,role:'member',session_version:0}));
+    }
     if(path==='/api/portal/logout'&&request.method==='POST'){if(user)await env.DB!.prepare('DELETE FROM portal_sessions WHERE token_hash=?').bind(user.sessionHash).run();return portalJson({ok:true},200,sessionCookie('',0));}
     if((path==='/api/portal/login'||path==='/api/portal/activate')&&request.method==='POST'){
       const body=await readBody(request),action=path.endsWith('login')?'login':'activate';
       const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
       const token=typeof body.token==='string'?body.token:'';
-      if(!await throttle(request,action,action==='login'?(/^[a-z.]{3,40}$/.test(username)?username:'unknown'):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
+      if(!await throttle(request,action,action==='login'?(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown'):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
       if(!await turnstile(body.turnstile,action))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
       const password=body.password.normalize('NFKC');

@@ -1,6 +1,7 @@
 declare namespace Cloudflare {
   interface Env {
     STANDALONE_MODE?: "demo" | "test-portal";
+    PUBLIC_REGISTRATION?: string;
     PORTAL_KEY?: string;
     PASSWORD_SERVICE?: DurableObjectNamespace;
     DEPLOYMENT_SHA?: string;

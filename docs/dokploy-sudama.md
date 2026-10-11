@@ -12,6 +12,8 @@ Cloudflare Tunnel `dokploy-sudama` (`d5cd04ad-9a55-45c6-ba23-5814b56c9115`) rout
 
 Runtime secrets live in Dokploy, never in Git or build arguments. Preserve `PORTAL_KEY` for the lifetime of the database; changing it after MFA enrollment makes existing encrypted MFA secrets unreadable. Keep the production Turnstile credentials and the canonical hostname `managelove.com`.
 
+Public posting is enabled with `PUBLIC_REGISTRATION=1`. `/register` creates a normal member account after terms acceptance, password validation and Turnstile; signup directs the member to the existing profile editor. Publishing still requires profile details, reference consent and publication consent. Members are not labelled phone/identity verified. Original invited test accounts remain fictional and administrator accounts retain mandatory MFA. Setting the flag to `0` closes signup and removes publishing access for public accounts while retaining original test access.
+
 ## Updates
 
 Current deployment uses Dokploy ZIP uploads from branch `codex/dokploy-sudama`. It does not automatically deploy changes pushed to GitHub. Use `pnpm build:node`, `pnpm test:node`, `PORTAL_TEST_RUNTIME=node node tests/portal.mjs` and `pnpm exec tsc --noEmit` before uploading source. Include tracked source and intended untracked source only; exclude local databases, credentials, outputs and dependencies. Choose `Dockerfile.sudama` with context `.`. Existing databases start without a migration seed; bootstrap credentials were removed after import.

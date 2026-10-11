@@ -12,6 +12,7 @@ await importSeedIfMissing(databasePath, { path: process.env.MIGRATION_SEED_PATH,
 const bindings = {
   DB: createDatabase(databasePath),
   STANDALONE_MODE: 'test-portal',
+  PUBLIC_REGISTRATION: process.env.PUBLIC_REGISTRATION,
   PORTAL_KEY: process.env.PORTAL_KEY,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY,
