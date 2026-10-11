@@ -44,6 +44,8 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/.migration/
+/.data/
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo

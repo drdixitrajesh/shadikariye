@@ -1,0 +1,17 @@
+.git
+node_modules
+dist
+.next
+.wrangler
+.sites-runtime
+.codex
+.agents
+.superpowers
+outputs
+work
+.env*
+*.sqlite*
+*.dpapi
+.data
+.migration/*
+!.migration/seed.aesgcm

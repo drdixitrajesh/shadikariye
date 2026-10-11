@@ -1,0 +1,29 @@
+# ManageLove on Sudama
+
+Live website: https://managelove.com
+
+Hosting: Sudama Dokploy, project `ManageLove`, application `ManageLove Sudama` (`AKe0fBSobpaNyG3b4j1AJ`). Dockerfile: `Dockerfile.sudama`. Build uses pinned Node 24.19.0 and pnpm 11.25.0, with the existing Vinext app and native SQLite. One replica only; multiple replicas must not share this SQLite volume.
+
+## Storage and routing
+
+Persistent Docker volume `managelove-sudama-data` is mounted at `/data`; database is `/data/managelove.sqlite`. Accounts, sessions, profiles and private photos are stored here. Deploying or restarting the app must preserve this volume. Do not delete the volume or deploy an empty replacement database.
+
+Cloudflare Tunnel `dokploy-sudama` (`d5cd04ad-9a55-45c6-ba23-5814b56c9115`) routes the apex, www and staging hostname to `http://localhost:80`. Traefik routes these hostnames to application port 3000; no application host ports are published. Cloudflare supplies public TLS. `VINEXT_TRUST_PROXY=1` and `TRUST_CLOUDFLARE_PROXY=1` are required for this topology. Only enable these settings when the application's origin is reachable through the trusted tunnel.
+
+Runtime secrets live in Dokploy, never in Git or build arguments. Preserve `PORTAL_KEY` for the lifetime of the database; changing it after MFA enrollment makes existing encrypted MFA secrets unreadable. Keep the production Turnstile credentials and the canonical hostname `managelove.com`.
+
+## Updates
+
+Current deployment uses Dokploy ZIP uploads from branch `codex/dokploy-sudama`. It does not automatically deploy changes pushed to GitHub. Use `pnpm build:node`, `pnpm test:node`, `PORTAL_TEST_RUNTIME=node node tests/portal.mjs` and `pnpm exec tsc --noEmit` before uploading source. Include tracked source and intended untracked source only; exclude local databases, credentials, outputs and dependencies. Choose `Dockerfile.sudama` with context `.`. Existing databases start without a migration seed; bootstrap credentials were removed after import.
+
+`pnpm start:node` starts the native production server. Cleanup runs hourly. Container health checks call `/api/health`; successful migrated responses include `X-ManageLove-Origin: sudama-node`. Startup logs report only account/profile counts and integrity status.
+
+## Recovery
+
+The pre-migration Cloudflare Worker `managelove` and D1 database `managelove-test-portal` were retained. Builds and the public Workers URL are disabled, and `managelove.com/*` / `www.managelove.com/*` no longer invoke the Worker. Merely restoring those routes after new server writes would discard the new writes from the user's view. Freeze writes and reconcile the current SQLite data before reverting to D1.
+
+Before migration, apex DNS was two proxied A records (`3.33.152.147`, `15.197.142.173`); www was a proxied CNAME to `managelove.com`. Apex now points to the Sudama tunnel CNAME; www resolves to that tunnel as well.
+
+Initial snapshot: 7 accounts, 6 profiles, zero enrolled MFA secrets; SHA-256 `5d853705d0f6cf2193199c22a6c93e1e152f0a5255706a7f09c29df0b3a014a3`. The encrypted SQL backup, deployment archive, import receipt and protected runtime settings are stored outside the repository under the Windows user's `.codex/integrations/dokploy` directory. DPAPI backups require that same Windows account. Retain protected copies of database and MFA key together. This migration does not configure automatic off-server backups.
+
+Dokploy MCP is installed locally with protected credentials. Its Access policy is restricted to the Sudama Dokploy panel. The temporary D1/Turnstile read token used for export was revoked after verification.

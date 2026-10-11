@@ -4,7 +4,8 @@ import {readFileSync,readdirSync,realpathSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash,createHmac,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 const require=createRequire(import.meta.url);
-const {Miniflare}=await import(require.resolve('miniflare',{paths:[realpathSync('node_modules/wrangler')]}));
+const nodeRuntime=process.env.PORTAL_TEST_RUNTIME==='node';
+const {Miniflare}=nodeRuntime?{}:await import(require.resolve('miniflare',{paths:[realpathSync('node_modules/wrangler')]}));
 const entry=resolve('dist/server/index.js');
 function modules(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(f=>f.isDirectory()?modules(resolve(dir,f.name)):/\.m?js$/.test(f.name)?[{type:'ESModule',path:resolve(dir,f.name)}]:[]);}
 const workerModules=modules(resolve('dist/server'));workerModules.sort((a,b)=>a.path===entry?-1:b.path===entry?1:0);
@@ -18,7 +19,7 @@ function turnstile(action,overrides={}){
   turnstileTokens.set(token,{success:true,action,hostname:'managelove.com',challenge_ts:new Date().toISOString(),...overrides});
   return token;
 }
-const mf=new Miniflare({
+const runtimeOptions={
   modules:workerModules,modulesRoot:resolve('dist/server'),
   modulesRules:[{type:'ESModule',include:['**/*.js','**/*.mjs']}],
   compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],
@@ -34,7 +35,8 @@ const mf=new Miniflare({
     turnstileTokens.delete(form.get('response'));
     return Response.json(result??{success:false,'error-codes':['invalid-input-response']});
   },
-});
+};
+const mf=nodeRuntime?await (await import('./node-portal-runtime.mjs')).createNodePortalRuntime(runtimeOptions):new Miniflare(runtimeOptions);
 function check(value,message){assert.ok(value,message);checks++;if(checks%20===0)console.log(checks+' portal checks passed');}
 function equal(actual,expected,message){assert.equal(actual,expected,message);checks++;}
 async function call(path,cookie=null,method='GET',data,extraHeaders={}){
@@ -254,7 +256,7 @@ try{
   const resetRecord=await db.prepare('SELECT token_hash FROM portal_activations WHERE account_id=? AND used_at IS NULL').bind(accounts.get('rohan.test').id).first();
   equal(resetRecord.token_hash,createHash('sha256').update(resetToken).digest('hex'),'Activation storage retains only a hash of the reset token');
   await db.prepare('UPDATE portal_activations SET expires_at=0 WHERE account_id=? AND used_at IS NULL').bind(accounts.get('rohan.test').id).run();
-  r=await call('/api/portal/activate',null,'POST',{token:resetToken,password:'New-fictional-rohan-password-2026!',turnstile:turnstile('activate')});check([400,401,410].includes(r.status),'An expired activation link cannot set a password');
+  r=await call('/api/portal/activate',null,'POST',{token:resetToken,password:'New-fictional-rohan-password-2026!',turnstile:turnstile('activate')});check([400,401,410].includes(r.status),'An expired activation link cannot set a password (HTTP '+r.status+', '+JSON.stringify(r.data)+')');
   const logoutCookie=cookies.get('ishita.test');
   r=await call('/api/portal/logout',logoutCookie,'POST',{}, {origin:''});equal(r.status,403,'Logout without Origin is rejected');
   r=await call('/api/portal/me',logoutCookie);check(Boolean(r.data.user),'A rejected cross-origin logout keeps its session');
