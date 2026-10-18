@@ -135,6 +135,7 @@ try{
   }
   const admin=cookies.get('drdixitrajesh'),alice=cookies.get('ananya.test'),bob=cookies.get('aarav.test'),charlie=cookies.get('aditya.test');
   r=await call('/api/admin/profiles',admin);check([401,403].includes(r.status),'Admin listing requires completed MFA');
+  r=await call('/api/admin/members',admin);check([401,403].includes(r.status),'Member oversight requires completed administrator MFA');
   r=await call('/api/portal/admin/accounts',admin);equal(r.status,403,'Admin account management requires completed MFA');
   r=await call('/api/portal/admin/accounts',admin,'POST',{accountId:accounts.get('rohan.test').id,reason:'Fictional reset attempt before MFA'});equal(r.status,403,'Administrator password alone cannot reset members');
   r=await call('/api/portal/mfa',admin);equal(r.status,200,'Admin may obtain their enrollment challenge');check(/^[A-Z2-7]{16,}$/.test(r.data.secret)&&r.data.uri.startsWith('otpauth://totp/'),'MFA enrollment supplies a valid TOTP setup secret');const adminSecret=r.data.secret;
@@ -153,6 +154,23 @@ try{
   check(r.data.accounts.every(a=>!('password_hash' in a)&&!('mfa_secret' in a)&&!('token_hash' in a)),'Account administration does not disclose password, TOTP or activation verifiers');
   r=await call('/api/admin/profiles',mfaCookie);equal(r.status,200,'Enrolled MFA administrator can list profiles');
   check(r.data.profiles.every(p=>!('references' in p)&&!('birthDate' in p)&&!('aadhaarLast4' in p)),'Admin catalog also excludes private identity and references');
+  r=await call('/api/admin/members');equal(r.status,401,'Anonymous visitors cannot list member activity');
+  r=await call('/api/admin/members',alice);equal(r.status,403,'Members cannot list administrator member oversight');
+  r=await call('/api/admin/members',mfaCookie);equal(r.status,200,'Administrator can open the real-member overview');equal(r.data.total,0,'Fictional test accounts are hidden by default');equal(r.data.summary.testAccounts,6,'Overview distinguishes six fictional accounts');
+  r=await call('/api/admin/members?tests=1',mfaCookie);equal(r.data.members.length,6,'Administrator may explicitly include fictional members');check(r.data.members.every(m=>m.profile&&m.testAccount),'Members link directly to their published profiles');
+  const detailPath='/api/admin/members?id='+accounts.get('ananya.test').id;
+  r=await call(detailPath,alice);equal(r.status,403,'A member cannot inspect another member activity');
+  r=await call(detailPath,mfaCookie);equal(r.status,200,'Administrator can inspect a selected member');equal(r.data.profile.name,'Ananya Sharma','Selected username resolves to its own public profile');check(r.data.events.some(e=>e.kind==='profile_published'),'Member activity includes recorded publication');check(typeof r.data.counts.messagesSent==='number','Activity includes aggregate counts');check(!JSON.stringify(r.data).includes(adminSecret)&&!('birthDate' in r.data.profile)&&!('references' in r.data.profile)&&!('password_hash' in r.data.member),'Oversight excludes credentials and private identity fields');
+  r=await call('/api/admin/members?id=not-an-id',mfaCookie);equal(r.status,400,'Malformed member identifier is rejected');
+  r=await call('/api/admin/members?id='+accounts.get('drdixitrajesh').id,mfaCookie);equal(r.status,404,'Member detail does not disclose administrator account data');
+  const fixtures=Array.from({length:31},(_,i)=>({id:crypto.randomUUID(),username:'oversight.fixture.'+i,at:Date.now()+i}));
+  for(const fixture of fixtures)await db.prepare("INSERT INTO portal_accounts(id,username,role,status,test_account,created_at) VALUES(?,?,'member','active',0,?)").bind(fixture.id,fixture.username,fixture.at).run();
+  r=await call('/api/admin/members',mfaCookie);equal(r.data.members.length,30,'Member overview is paginated');equal(r.data.total,31,'Overview reports full matching count');check(Boolean(r.data.nextCursor),'Member overview provides a next-page cursor');
+  r=await call('/api/admin/members?before='+encodeURIComponent(r.data.nextCursor),mfaCookie);equal(r.data.members.length,1,'Next page reaches remaining members without duplicates');
+  r=await call('/api/admin/members?id='+fixtures[0].id,mfaCookie);equal(r.data.profile,null,'Account without a publication is represented explicitly');equal(r.data.counts.messagesSent,0,'No activity is invented for a new account');
+  r=await call('/api/admin/members?q='+encodeURIComponent("' OR 1=1 --"),mfaCookie);equal(r.data.total,0,'Search treats SQL-like input as plain text');
+  r=await call('/api/admin/members?before=invalid',mfaCookie);equal(r.status,400,'Invalid member cursor is rejected');
+  for(const fixture of fixtures)await db.prepare('DELETE FROM portal_accounts WHERE id=?').bind(fixture.id).run();
   const aliceState=states.get('ananya.test'),bobState=states.get('aarav.test');const aliceId=aliceState.own.id,bobId=bobState.own.id;
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{city:'Pune'}),{origin:'https://attacker.invalid'});equal(r.status,403,'Cross-origin member write is rejected');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{city:'Pune'}),{origin:''});equal(r.status,403,'Member write without Origin is rejected');
@@ -180,6 +198,8 @@ try{
   r=await call('/api/photo',alice,'POST',photoForm(0,256*1024+1));check([400,413].includes(r.status),'Photo larger than 256 KiB is rejected');
   const photos=[];
   for(let slot=0;slot<5;slot++){r=await call('/api/photo',alice,'POST',photoForm(slot));equal(r.status,200,'Photo slot '+slot+' persists');photos.push(r.data.photoKey);}
+  r=await call('/api/photo/'+photos[0],mfaCookie);equal(r.status,200,'MFA administrator can preview private member photos without a daily view reservation');
+  r=await call('/api/photo/'+photos[0],admin);check([401,403].includes(r.status),'A password-only or revoked admin session cannot preview member photos');
   const storedPhotos=await db.prepare('SELECT key,size,body FROM portal_photos').all();
   equal(storedPhotos.results.length,5,'All five uploaded photo bodies persist in private D1 storage without an R2 binding');
   check(storedPhotos.results.every(p=>p.size>0&&p.size<=256*1024),'Persisted photo bodies remain within the per-photo limit');
