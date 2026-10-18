@@ -19,7 +19,7 @@ export function canonicalGotra(value: string) {
   return aliases[clean.toLowerCase()] ?? GOTRAS.find(g=>g.toLowerCase()===clean.toLowerCase()) ?? clean;
 }
 export type Reference={name:string;relationship:string;phone:string;consent:boolean};
-export type Profile = {publishedAt?:number;expiresAt?:number;id:string;name:string;email?:string;age:number;gender:string;community:string;gotra:string;city:string;education:string;profession:string;height:number;maritalStatus:string;about:string;managedBy:string;language:string;demo:boolean;testAccount?:boolean;portrait:number|null;photoKey:string|null;photoKeys?:string[];photoSlots?:{slot:number;key:string}[];referenceCount?:number;phoneVerified?:boolean;};
+export type Profile = {publicListing?:boolean;publishedAt?:number;expiresAt?:number;id:string;name:string;email?:string;age:number;gender:string;community:string;gotra:string;city:string;education:string;profession:string;height:number;maritalStatus:string;about:string;managedBy:string;language:string;demo:boolean;testAccount?:boolean;portrait:number|null;photoKey:string|null;photoKeys?:string[];photoSlots?:{slot:number;key:string}[];referenceCount?:number;phoneVerified?:boolean;};
 export type Filters = {gender?:string;ageMin?:number;ageMax?:number;community?:string;gotra?:string;city?:string;excludeGotra?:string;query?:string;maritalStatus?:string;};
 export function matchesFilters(p:Profile,f:Filters) {
   if (f.gender && f.gender !== 'all' && p.gender!==f.gender) return false;
