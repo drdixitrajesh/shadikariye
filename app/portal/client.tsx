@@ -11,7 +11,7 @@ export async function portalApi<T>(path:string,body?:unknown):Promise<T>{
   return data as T;
 }
 export function PortalFrame({title,children}:{title:string;children:ReactNode}){
-  return <main className="legal-page"><Link href="/">वैदिक मिलन / Vedik Milan</Link><h1>{title}</h1><p className="legal-free">पूर्णतः निःशुल्क / Completely free</p><p>अपनी प्रोफ़ाइल निःशुल्क प्रकाशित करें। / Publish your profile for free.</p><section className="security-panel">{children}</section><p><a href="/terms">नियम और डिस्क्लेमर / Terms & disclaimer</a></p></main>;
+  return <main className="legal-page portal-page"><Link href="/">वैदिक मिलन / Vedik Milan</Link><h1>{title}</h1><p className="legal-free">पूर्णतः निःशुल्क / Completely free</p><p>अपनी प्रोफ़ाइल निःशुल्क प्रकाशित करें। / Publish your profile for free.</p><section className="security-panel">{children}</section><p><a href="/terms">नियम और डिस्क्लेमर / Terms & disclaimer</a></p></main>;
 }
 export function LogoutButton({label='लॉग आउट / Log out'}:{label?:string}){const [busy,setBusy]=useState(false),[error,setError]=useState('');return <><button type="button" className="text-button" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await portalApi('/api/portal/logout',{});window.location.assign('/');}catch(e){setError((e as Error).message);setBusy(false);}}}>{label}</button>{error&&<span role="alert" className="form-error">{error}</span>}</>;}
 type TurnstileAPI={render:(container:HTMLElement,options:Record<string,unknown>)=>string;execute:(id:string)=>void;reset:(id:string)=>void;remove:(id:string)=>void};
