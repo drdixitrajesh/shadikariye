@@ -9,7 +9,7 @@ export async function cleanup() {
 
 export default async function fetch(request: Request) {
   const url = new URL(request.url);
-  const allowedHosts = (process.env.APP_ALLOWED_HOSTS ?? 'managelove.com,www.managelove.com').split(',');
+  const allowedHosts = (process.env.APP_ALLOWED_HOSTS ?? 'vedik-milan.softinator.org,managelove.com,www.managelove.com').split(',');
   if (url.pathname !== '/api/health' && !allowedHosts.includes(url.hostname)) return new Response('Unknown host', { status: 421 });
   // Traefik sees the tunnel's local HTTP connection and rewrites forwarded
   // protocol. Cloudflare's visitor scheme preserves the browser's HTTPS URL.

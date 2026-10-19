@@ -24,14 +24,14 @@ export default {
     }
     if (env.STANDALONE_MODE === "demo" || env.STANDALONE_MODE === "test-portal") {
       const url = new URL(request.url);
-      if (url.hostname === "www.managelove.com" || (url.hostname === "managelove.com" && url.protocol !== "https:")) {
-        url.hostname = "managelove.com";
+      if (url.hostname === "www.managelove.com" || (["managelove.com","vedik-milan.softinator.org"].includes(url.hostname) && url.protocol !== "https:")) {
+        url.hostname = url.hostname === "www.managelove.com" ? "managelove.com" : url.hostname;
         url.protocol = "https:";
         return Response.redirect(url.href, 308);
       }
       if (env.STANDALONE_MODE==='test-portal'&&["/signin-with-chatgpt", "/signout-with-chatgpt", "/callback"].includes(url.pathname))return Response.redirect(url.origin+'/login',303);
       if (["/signin-with-chatgpt", "/signout-with-chatgpt", "/callback"].includes(url.pathname)) {
-        return new Response('<!doctype html><html lang="hi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>सदस्य सेवाएं | Vaidik Milan</title><body><main><h1>सदस्य सेवाएं अभी उपलब्ध नहीं हैं</h1><p>Sign-in and member features are not available yet. You can browse fictional demo profiles.</p><a href="/">वेबसाइट पर जाएं / Browse the website</a></main></body></html>', {
+        return new Response('<!doctype html><html lang="hi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>सदस्य सेवाएं | Vedik Milan</title><body><main><h1>सदस्य सेवाएं अभी उपलब्ध नहीं हैं</h1><p>Sign-in and member features are not available yet. You can browse fictional demo profiles.</p><a href="/">वेबसाइट पर जाएं / Browse the website</a></main></body></html>', {
           status: 503,
           headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
         });

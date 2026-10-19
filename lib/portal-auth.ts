@@ -38,13 +38,13 @@ export async function throttle(request:Request,scope:string,subject='',limits={i
   const rows=await env.DB!.batch(keys.map(k=>env.DB!.prepare('INSERT INTO portal_throttle (key,window,count) VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window=excluded.window THEN count+1 ELSE 1 END,window=excluded.window RETURNING count').bind(k.key,window)));
   return rows.every((row,i)=>Number((row.results?.[0] as {count?:number})?.count??999)<=keys[i].limit);
 }
-export async function turnstile(token:unknown,action:'login'|'activate'|'register'){
+export async function turnstile(token:unknown,action:'login'|'activate'|'register',hostname='managelove.com'){
   if(typeof token!=='string'||token.length<1||token.length>2048||!env.TURNSTILE_SECRET_KEY)return false;
   try{
     const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:env.TURNSTILE_SECRET_KEY,response:token}),signal:AbortSignal.timeout(10000)});
     const result=await response.json() as {success?:boolean;hostname?:string;action?:string;challenge_ts?:string};
     const age=Date.now()-Date.parse(result.challenge_ts??'');
-    return response.ok&&result.success===true&&result.hostname==='managelove.com'&&result.action===action&&age>=-30000&&age<300000;
+    return response.ok&&result.success===true&&['vedik-milan.softinator.org','managelove.com','www.managelove.com'].includes(hostname)&&result.hostname===hostname&&result.action===action&&age>=-30000&&age<300000;
   }catch{return false;}
 }
 export async function passwordService(accountId:string,password:string,hash?:string){
@@ -82,7 +82,7 @@ export async function handlePortal(request:Request){
       if(!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username))return portalJson({error:'3–40 अक्षरों का यूज़रनेम चुनें: English letters, numbers, dot, underscore or hyphen.'},400);
       if(body.termsAccepted!==true||!validPassword(body.password))return portalJson({error:'नियम स्वीकार करें और 16–128 अक्षरों का पासवर्ड चुनें। / Accept the terms and use a password of 16–128 characters.'},400);
       if(!await throttle(request,'register',username,{ip:5,subject:3,global:80}))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
-      if(!await turnstile(body.turnstile,'register'))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
+      if(!await turnstile(body.turnstile,'register',new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       const id=crypto.randomUUID();
       const {hash}=await passwordService(id,body.password.normalize('NFKC'));
       const created=await env.DB!.prepare("INSERT INTO portal_accounts (id,username,role,password_hash,status,session_version,test_account,created_at) VALUES (?,?,'member',?,'active',0,0,?) ON CONFLICT(username) DO NOTHING").bind(id,username,hash,Date.now()).run();
@@ -95,7 +95,7 @@ export async function handlePortal(request:Request){
       const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
       const token=typeof body.token==='string'?body.token:'';
       if(!await throttle(request,action,action==='login'?(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown'):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
-      if(!await turnstile(body.turnstile,action))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
+      if(!await turnstile(body.turnstile,action,new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
       const password=body.password.normalize('NFKC');
       if(action==='login'){
@@ -168,7 +168,7 @@ export async function handlePortal(request:Request){
         env.DB!.prepare('INSERT INTO portal_activations (id,account_id,token_hash,expires_at) VALUES (?,?,?,?)').bind(id,accountId,await digest(token),expires),
         env.DB!.prepare("INSERT INTO admin_actions (id,actor,target,action,reason,created_at) VALUES (?,?,?,'reset_account',?,?)").bind(crypto.randomUUID(),user.id,accountId,reason,Date.now()),
       ]);
-      return portalJson({ok:true,activationUrl:`https://managelove.com/activate#${token}`,expiresAt:expires});
+      return portalJson({ok:true,activationUrl:`https://vedik-milan.softinator.org/activate#${token}`,expiresAt:expires});
     }
     return portalJson({error:'Not found'},404);
   }catch(e){if(e instanceof Error&&e.message==='invalid-input'||e instanceof SyntaxError)return portalJson({error:'Invalid request'},400);console.error('Portal operation failed; no credential values recorded.');return portalJson({error:'Free service temporarily unavailable. Please retry later.'},503);}

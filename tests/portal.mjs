@@ -39,16 +39,16 @@ const runtimeOptions={
 const mf=nodeRuntime?await (await import('./node-portal-runtime.mjs')).createNodePortalRuntime(runtimeOptions):new Miniflare(runtimeOptions);
 function check(value,message){assert.ok(value,message);checks++;if(checks%20===0)console.log(checks+' portal checks passed');}
 function equal(actual,expected,message){assert.equal(actual,expected,message);checks++;}
-async function call(path,cookie=null,method='GET',data,extraHeaders={}){
+async function call(path,cookie=null,method='GET',data,extraHeaders={},requestOrigin=origin){
   const headers=new Headers(extraHeaders);
   if(cookie)headers.set('cookie',cookie);
-  if(method!=='GET'&&method!=='HEAD'&&!headers.has('origin'))headers.set('origin',origin);
+  if(method!=='GET'&&method!=='HEAD'&&!headers.has('origin'))headers.set('origin',requestOrigin);
   let body;
   if(data instanceof FormData){const encoded=new Request(origin+path,{method:'POST',body:data});body=await encoded.arrayBuffer();headers.set('content-type',encoded.headers.get('content-type'));}
   else if(data!==undefined){body=JSON.stringify(data);headers.set('content-type','application/json');}
   // An empty Origin explicitly tests that writes without an Origin fail closed.
   if(headers.get('origin')==='')headers.delete('origin');
-  const response=await mf.dispatchFetch(origin+path,{method,headers,body});
+  const response=await mf.dispatchFetch(requestOrigin+path,{method,headers,body});
   const contentType=response.headers.get('content-type')??'';
   return {status:response.status,headers:response.headers,data:contentType.includes('json')?await response.json():contentType.startsWith('image/')?Buffer.from(await response.arrayBuffer()):await response.text()};
 }
@@ -117,6 +117,11 @@ try{
   r=await call('/api/portal/login',null,'POST',{username:'ananya.test',password:passwordFor('ananya.test'),turnstile:turnstile('login',{hostname:'other.invalid'})});equal(r.status,403,'Login rejects another Turnstile hostname');
   r=await call('/api/portal/login',null,'POST',{username:'ananya.test',password:passwordFor('ananya.test'),turnstile:turnstile('login',{challenge_ts:new Date(Date.now()-600000).toISOString()})});equal(r.status,403,'Login rejects an expired Turnstile challenge');
   r=await call('/api/portal/login',null,'POST',{username:'ananya.test',password:passwordFor('ananya.test')});equal(r.status,403,'Login without Siteverify token is denied');
+  const newOrigin='https://vedik-milan.softinator.org';
+  r=await call('/api/portal/login',null,'POST',{username:'rohan.test',password:passwordFor('rohan.test'),turnstile:turnstile('login')},{},newOrigin);equal(r.status,403,'New hostname rejects a challenge issued for the old hostname');
+  r=await call('/api/portal/login',null,'POST',{username:'rohan.test',password:passwordFor('rohan.test'),turnstile:turnstile('login',{hostname:'vedik-milan.softinator.org'})},{},newOrigin);equal(r.status,200,'New hostname accepts its own valid security challenge');
+  const newCookie=sessionCookie(r);
+  r=await call('/api/portal/me',newCookie,'GET',undefined,{},newOrigin);equal(r.data.user.username,'rohan.test','New hostname signs into the existing member account');
   const forged={'oai-authenticated-user-id':accounts.get('drdixitrajesh').id,'oai-authenticated-user-email':'drdixitrajesh@managelove.com'};
   r=await call('/api/portal/me',null,'GET',undefined,forged);equal(r.data.user,null,'Forged managed sign-in headers grant no portal session');
   for(const path of ['/api/admin/profiles','/api/portal/admin/accounts']){r=await call(path,null,'GET',undefined,forged);check([401,403].includes(r.status),'Forged headers cannot administer '+path);}
