@@ -128,3 +128,5 @@ html[lang=hi] .brand strong{font-family:'Noto Serif Devanagari',serif;font-size:
   .active-preferences button{margin-left:0}
   .site-shell input:not([type=checkbox]):not([type=radio]),.site-shell textarea{font-size:16px}
 }
+
+.profile-loading{display:flex;align-items:center;justify-content:center;gap:12px;min-height:240px;color:var(--muted-foreground);font-size:15px}
