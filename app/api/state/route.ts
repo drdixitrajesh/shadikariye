@@ -1,3 +1,4 @@
+import {approvedSql} from '@/lib/profile-approval';
 import {db,identity,json,errorResponse,fromRow} from '@/lib/store';
 import {adminIdentity} from '@/lib/admin';
 import {DEMO_PROFILES} from '@/lib/matrimony';
@@ -19,9 +20,9 @@ export async function GET(){
       db().prepare('SELECT name,birth_date,aadhaar_last4 FROM identity_locks WHERE owner=?').bind(owner).first(),
       db().prepare('SELECT references_json FROM profile_private WHERE owner=?').bind(owner).first<{references_json:string}>(),
     ]);
-    const rows=(isVerified||memberAccess(owner)||isAdministrator)?await db().prepare('SELECT p.id,p.data,p.photo_key,l.birth_date FROM profiles p LEFT JOIN identity_locks l ON l.owner=p.owner WHERE p.owner<>? AND (p.id IN (SELECT target FROM daily_views WHERE owner=? AND day=?) OR p.id IN (SELECT target FROM saved_profiles WHERE owner=?) OR p.id IN (SELECT target FROM interests WHERE sender=?) OR p.id IN (SELECT i.sender_profile FROM interests i JOIN profiles p2 ON p2.id=i.target WHERE p2.owner=?) OR p.id IN (SELECT id FROM profiles ORDER BY updated_at DESC LIMIT 500)) ORDER BY CASE WHEN p.id IN (SELECT target FROM daily_views WHERE owner=? AND day=?) THEN 0 WHEN p.id IN (SELECT target FROM saved_profiles WHERE owner=?) THEN 1 ELSE 2 END,p.updated_at DESC').bind(owner,owner,indianDay(),owner,owner,owner,owner,indianDay(),owner).all<{id:string;data:string;photo_key:string|null;birth_date:string|null}>():{results:[]};
+    const rows=(isVerified||memberAccess(owner)||isAdministrator)?await db().prepare('SELECT p.id,p.data,p.photo_key,l.birth_date FROM profiles p LEFT JOIN identity_locks l ON l.owner=p.owner WHERE '+approvedSql('p')+' AND p.owner<>? AND (p.id IN (SELECT target FROM daily_views WHERE owner=? AND day=?) OR p.id IN (SELECT target FROM saved_profiles WHERE owner=?) OR p.id IN (SELECT target FROM interests WHERE sender=?) OR p.id IN (SELECT i.sender_profile FROM interests i JOIN profiles p2 ON p2.id=i.target WHERE p2.owner=?) OR p.id IN (SELECT id FROM profiles ORDER BY updated_at DESC LIMIT 500)) ORDER BY CASE WHEN p.id IN (SELECT target FROM daily_views WHERE owner=? AND day=?) THEN 0 WHEN p.id IN (SELECT target FROM saved_profiles WHERE owner=?) THEN 1 ELSE 2 END,p.updated_at DESC').bind(owner,owner,indianDay(),owner,owner,owner,owner,indianDay(),owner).all<{id:string;data:string;photo_key:string|null;birth_date:string|null}>():{results:[]};
     const visible=[];
-    for(const row of rows.results){if(visible.length>=20)break;if(await blocked(owner,row.id))continue;if(await reserveView(owner,row.id)){const p=fromRow(row);if(row.birth_date)p.age=ageFromDate(row.birth_date);visible.push(p);}else break;}
+    for(const row of rows.results){if(visible.length>=20)break;if(await blocked(owner,row.id))continue;if(await reserveView(owner,row.id)){const p=fromRow(row);delete p.reviewToken;delete p.reviewReason;if(row.birth_date)p.age=ageFromDate(row.birth_date);visible.push(p);}else break;}
     for(const demo of (isPortal()?[]:DEMO_PROFILES)){if(visible.length>=20)break;if(await reserveView(owner,demo.id))visible.push(demo);}
     const ownProfile=own?fromRow(own):null;
     if(ownProfile){if(lock)ownProfile.age=ageFromDate(String(lock.birth_date));visible.push(ownProfile);}

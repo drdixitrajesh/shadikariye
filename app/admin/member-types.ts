@@ -1,6 +1,6 @@
 import type {Profile} from '@/lib/matrimony';
-export type Member={id:string;username:string;status:string;createdAt:number;testAccount:boolean;profile:{id:string;name:string;city:string;publicListing?:boolean;publishedAt:number}|null};
-export type MembersPage={members:Member[];total:number;summary:{members:number;profiles:number;testAccounts:number};nextCursor:string|null};
+export type Member={id:string;username:string;status:string;createdAt:number;testAccount:boolean;profile:{id:string;name:string;city:string;publicListing?:boolean;approvalStatus?:'pending'|'approved'|'rejected';publishedAt:number}|null};
+export type MembersPage={members:Member[];total:number;summary:{members:number;profiles:number;pending:number;testAccounts:number};nextCursor:string|null};
 export type MemberPage={member:Member;profile:Profile|null;updatedAt:number|null;counts:{saved:number;interestsSent:number;interestsReceived:number;messagesSent:number;profileViews:number;reportsReceived:number};events:{at:number;kind:string;detail:string}[]};
 export function dateLabel(value:number|undefined|null){return value?new Intl.DateTimeFormat('hi-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}).format(value):'—';}
 export async function adminRead<T>(path:string,signal?:AbortSignal):Promise<T>{const response=await fetch(path,{cache:'no-store',signal});const data=await response.json() as T&{error?:string};if(!response.ok)throw new Error(response.status===401?'सत्र समाप्त हो गया है। फिर लॉग इन करें।':response.status===403?'प्रशासक का सत्यापन आवश्यक है। अपना खाता खोलें।':data.error??'जानकारी लोड नहीं हुई। फिर प्रयास करें।');return data;}

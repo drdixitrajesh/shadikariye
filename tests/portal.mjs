@@ -52,6 +52,7 @@ async function call(path,cookie=null,method='GET',data,extraHeaders={},requestOr
   const contentType=response.headers.get('content-type')??'';
   return {status:response.status,headers:response.headers,data:contentType.includes('json')?await response.json():contentType.startsWith('image/')?Buffer.from(await response.arrayBuffer()):await response.text()};
 }
+async function approveProfile(member,admin){const state=await call('/api/state',member);const reviewed=await call('/api/admin/profiles/review',admin,'POST',{id:state.data.own.id,reviewToken:state.data.own.reviewToken,decision:'approved'});equal(reviewed.status,200,'MFA administrator approves the latest profile revision');}
 function sessionCookie(response){
   const value=response.headers.get('set-cookie');
   check(Boolean(value?.startsWith('__Host-managelove=')),'Login sets the host-only portal cookie');
@@ -180,6 +181,7 @@ try{
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{city:'Pune'}),{origin:'https://attacker.invalid'});equal(r.status,403,'Cross-origin member write is rejected');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{city:'Pune'}),{origin:''});equal(r.status,403,'Member write without Origin is rejected');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{id:bobId,owner:accounts.get('aarav.test').id,city:'Pune',email:'  fictional.ananya@example.invalid  '}));equal(r.status,200,'Owner may edit mutable profile details');equal(r.data.profile.id,aliceId,'Client supplied identity cannot edit another account');equal(r.data.profile.city,'Pune','Mutable edit persists');equal(r.data.profile.email,'fictional.ananya@example.invalid','Consented contact email is trimmed');const expiry=r.data.profile.expiresAt;
+  r=await call('/api/state',bob);check(!r.data.profiles.some(p=>p.id===aliceId),'Edited profile stays hidden until admin approval');await approveProfile(alice,mfaCookie);
   r=await call('/api/state',bob);equal(r.data.own.city,bobState.own.city,'An ownership forgery leaves the other member unchanged');equal(r.data.profiles.find(p=>p.id===aliceId)?.email,'fictional.ananya@example.invalid','Allowed member sees the consented contact email');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{email:'broken-address'}));equal(r.status,400,'Invalid contact email is rejected');
   for(const changed of [{name:'Changed Fictional Identity'},{birthDate:'1990-01-01'},{aadhaarLast4:'9876'}]){r=await call('/api/profile',alice,'POST',profileBody(aliceState,changed));equal(r.status,409,'Locked identity cannot be changed through an edit');}
@@ -190,6 +192,7 @@ try{
   r=await call('/api/state');check(!r.data.profiles.some(p=>p.id===aliceId||p.email==='fictional.ananya@example.invalid'),'Anonymous visitors cannot read real member email or member profile');
   r=await call('/api/actions',alice,'POST',{kind:'save',target:bobId,saved:true});equal(r.status,200,'Member can shortlist a member profile');
   r=await call('/api/state',alice);check(r.data.saved.includes(bobId),'Shortlist persists on a later request');
+  await approveProfile(alice,mfaCookie);
   r=await call('/api/actions',alice,'POST',{kind:'interest',target:bobId,message:'Hello from a fictional test member'});equal(r.status,200,'Member may send an interest');
   r=await call('/api/state',bob);const interest=r.data.received.find(i=>i.sender_profile===aliceId);check(Boolean(interest),'Correct recipient sees the persisted interest');const thread=interest.id;
   r=await call('/api/messages',alice,'POST',{thread,body:'Before acceptance'});equal(r.status,403,'Messages require accepted interest');
@@ -221,6 +224,7 @@ try{
   r=await call('/api/photo',alice,'POST',photoForm(5));equal(r.status,400,'Sixth photo is rejected');
   r=await call('/api/state',alice);equal(r.data.own.photoKeys.length,5,'All five private photo slots survive a fresh read');
   r=await call('/api/photo/'+photos[0]);equal(r.status,401,'Anonymous visitors cannot download private photos');
+  r=await call('/api/photo/'+photos[0],bob);equal(r.status,403,'Pending photos stay hidden despite a previous view reservation');await approveProfile(alice,mfaCookie);
   r=await call('/api/photo/'+photos[0],bob);equal(r.status,200,'An allowed member may read a member photo');check(r.headers.get('cache-control')?.includes('private')&&r.headers.get('cache-control')?.includes('no-store'),'Private photos are never publicly cached');
   equal(r.headers.get('content-type'),'image/png','Private photo response preserves a safe image type');
   check(r.data.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'Private photo response contains the actual stored image bytes');

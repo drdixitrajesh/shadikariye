@@ -3,6 +3,8 @@ A completely free Brahmin matrimonial service for consenting adults and family m
 The primary activity is browsing profiles with separate community and gotra fields. Kanyakubj is a community; Shandilya is a gotra. Classification is self-reported, non-exhaustive and never inferred from surname.
 Profile publishing, shortlists, interests and messages are free. No premium plans, payments or paid contact gates.
 Consent-based profile publishing only. No harvesting personal matrimonial information from Facebook, Instagram, WhatsApp or other websites. WhatsApp sharing opens an invitation composer.
+
+New profile submissions require administrator approval before discovery or photo access by other members. Profile edits and photo additions/removals reset approval to pending. Owners see pending/rejected status and rejection reasons; MFA administrators review the current profile revision in the member workspace, approve or request corrections, and have an audited decision history. Existing publications from before this workflow remain approved until edited. Approval respects the member's separate public-listing consent. The six-month lifetime still starts at initial submission and is not extended by review or editing.
 Assumptions: Hindi default with English option; adult platform eligibility 21–70; owner-private first launch; generated fictional demo profiles clearly labelled; ChatGPT authentication.
 D1 stores profiles, shortlists, interests and private messages. R2 stores voluntarily uploaded photos. Real messages require accepted interests; sender and recipient authorize each conversation. A daily interest limit is anti-spam, not a paid tier.
 

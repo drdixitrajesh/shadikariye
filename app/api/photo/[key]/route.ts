@@ -1,3 +1,4 @@
+import {approvalStatus} from '@/lib/profile-approval';
 import {db,bucket,identity,json,errorResponse} from '@/lib/store';
 import {blocked,hasView} from '@/lib/security';
 import {adminIdentity} from '@/lib/admin';
@@ -10,7 +11,7 @@ export async function GET(request:Request,{params}:{params:Promise<{key:string}>
     if(!row)return json({error:owner?'Not found':'Sign in required'},owner?404:401);
     const isPublic=publiclyVisible(row.data,row.expires_at);
     if(!owner&&!isPublic)return json({error:'Sign in required'},401);
-    if(owner&&row.owner!==owner&&!await adminIdentity()&&(await blocked(owner,row.id)||(!isPublic&&!await hasView(owner,row.id))))return json({error:'आज की उपलब्ध प्रोफ़ाइल में यह फोटो नहीं है। / Photo is not in your daily profiles.'},403);
+    if(owner&&row.owner!==owner&&!await adminIdentity()&&(approvalStatus(row.data)!=='approved'||await blocked(owner,row.id)||(!isPublic&&!await hasView(owner,row.id))))return json({error:'आज की उपलब्ध प्रोफ़ाइल में यह फोटो नहीं है। / Photo is not in your daily profiles.'},403);
     const object=await bucket().get(key);if(!object)return json({error:'Not found'},404);
     return new Response(object.body,{headers:{'Content-Type':object.httpMetadata?.contentType??'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
   }catch(e){return errorResponse(e);}

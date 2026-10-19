@@ -1,3 +1,4 @@
+import {approvedSql} from '@/lib/profile-approval';
 import {db,identity,json,errorResponse,validOrigin,findProfile} from '@/lib/store';
 import {z} from 'zod';
 import {requireVerified,blocked,hasView} from '@/lib/security';
@@ -18,12 +19,13 @@ export async function POST(request:Request){
       return json({ok:true});
     }
     if(targetProfile.demo)return json({error:'This is a fictional demo profile. Interests are available for real members. / यह काल्पनिक डेमो प्रोफ़ाइल है। रियल सदस्यों को रुचि भेज सकते हैं।'},422);
+    if(own&&!await db().prepare('SELECT 1 FROM profiles WHERE id=? AND '+approvedSql()).bind(own.id).first())return json({error:'Admin approval is required before sending interests. / रुचि भेजने से पहले Admin approval आवश्यक है।'},409);
     if(!own)return json({error:'Create your profile first. / पहले अपनी प्रोफ़ाइल बनाएं।'},409);
     const count=await db().prepare('SELECT COUNT(*) AS n FROM interests WHERE sender=? AND created_at>?').bind(owner,Date.now()-86400000).first<{n:number}>();
     if((count?.n??0)>=20)return json({error:'You can send 20 interests per day. Try again tomorrow. / एक दिन में 20 रुचियाँ भेज सकते हैं। कल फिर कोशिश करें।'},429);
     const existing=await db().prepare('SELECT id FROM interests WHERE sender=? AND target=?').bind(owner,target).first();
     if(existing)return json({error:'You have already sent an interest. / आप पहले ही रुचि भेज चुके हैं।'},409);
-    const inserted=await db().prepare("INSERT INTO interests (id,sender,sender_profile,target,message,status,created_at) SELECT ?,?,?,p.id,?,'pending',? FROM profiles p WHERE p.id=? AND EXISTS (SELECT 1 FROM profiles WHERE id=? AND owner=?) AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.owner=? AND b.target=p.id) OR (b.owner=p.owner AND b.target=?))").bind(crypto.randomUUID(),owner,own.id,message??'I would like to get to know you. / मैं आपसे परिचय करना चाहता/चाहती हूँ।',Date.now(),target,own.id,owner,owner,own.id).run();
+    const inserted=await db().prepare(`INSERT INTO interests (id,sender,sender_profile,target,message,status,created_at) SELECT ?,?,?,p.id,?,'pending',? FROM profiles p WHERE ${approvedSql('p')} AND p.id=? AND EXISTS (SELECT 1 FROM profiles WHERE ${approvedSql()} AND id=? AND owner=?) AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.owner=? AND b.target=p.id) OR (b.owner=p.owner AND b.target=?))`).bind(crypto.randomUUID(),owner,own.id,message??'I would like to get to know you. / मैं आपसे परिचय करना चाहता/चाहती हूँ।',Date.now(),target,own.id,owner,owner,own.id).run();
     if(!inserted.meta.changes)return json({error:'Profile unavailable'},403);
     return json({ok:true});
   }catch(e){return errorResponse(e);}

@@ -1,3 +1,4 @@
+import {randomBytes,createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createNodePortalRuntime} from './node-portal-runtime.mjs';
@@ -49,13 +50,23 @@ try{
   assert.equal((await anonymousPhoto()).status,401);
   assert.equal((await call('/api/state')).data.profiles.some(p=>p.id===published.data.profile.id),false);
   assert.equal((await call('/api/profile',{...profile,publicListing:'yes'},registered.cookie)).status,400);
+  const admin=await db.prepare("SELECT id FROM portal_accounts WHERE role='admin' LIMIT 1").first(),adminToken=randomBytes(32).toString('hex');
+  await db.prepare("UPDATE portal_accounts SET status='active' WHERE id=?").bind(admin.id).run();
+  await db.prepare('INSERT INTO portal_sessions(token_hash,account_id,session_version,mfa_verified,created_at,expires_at) VALUES(?,?,0,1,?,?)').bind(createHash('sha256').update(adminToken).digest('hex'),admin.id,Date.now(),Date.now()+3600000).run();
+  const adminCookie='__Host-managelove='+adminToken;
+  async function approve(profile){assert.equal((await call('/api/admin/profiles/review',{id:profile.id,reviewToken:profile.reviewToken,decision:'approved'},adminCookie)).status,200);}
   const optedIn=await call('/api/profile',{...profile,publicListing:true,email:'private-contact@example.invalid'},registered.cookie);
   assert.equal(optedIn.status,200);assert.equal(optedIn.data.profile.publicListing,true);assert.equal(optedIn.data.profile.expiresAt,published.data.profile.expiresAt);
+  assert.equal(optedIn.data.profile.approvalStatus,'pending');
+  assert.equal((await call('/api/state')).data.profiles.some(p=>p.id===published.data.profile.id),false);
+  assert.equal((await anonymousPhoto()).status,401);
+  await approve(optedIn.data.profile);
   const publicState=await call('/api/state'),publicProfile=publicState.data.profiles.find(p=>p.id===published.data.profile.id);
   assert.ok(publicProfile);assert.equal(publicProfile.name,'New Member');assert.equal(publicProfile.photoKeys[0],photoKey);assert.equal('email' in publicProfile,false);
   for(const privateValue of ['private-contact@example.invalid','1996-04-15','+919999999991','Reference One'])assert.equal(JSON.stringify(publicState.data).includes(privateValue),false);
   const publicPhoto=await anonymousPhoto();assert.equal(publicPhoto.status,200);assert.equal(publicPhoto.headers.get('content-type'),'image/png');assert.match(publicPhoto.headers.get('cache-control'),/no-store/);
   const regularEdit=await call('/api/profile',{...profile,city:'Bhopal'},registered.cookie);assert.equal(regularEdit.data.profile.publicListing,true);
+  assert.equal(regularEdit.data.profile.approvalStatus,'pending');await approve(regularEdit.data.profile);
   await db.prepare("UPDATE profiles SET data=json_set(data,'$.testAccount',1) WHERE id=?").bind(published.data.profile.id).run();
   assert.equal((await anonymousPhoto()).status,401);assert.equal((await call('/api/state')).data.profiles.some(p=>p.id===published.data.profile.id),false);
   const optedOut=await call('/api/profile',{...profile,publicListing:false},registered.cookie);assert.equal(optedOut.data.profile.publicListing,false);
