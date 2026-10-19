@@ -50,10 +50,20 @@ test('real activation form enforces new password bounds without rendering an inv
   assert.match(html,/single-use/);assert.match(html,/disabled=""/);
   assert.doesNotMatch(html,/portal-username/);
 });
-test('real login form offers invited account access and no public signup',()=>{
+test('real login form uses existing credentials and waits for registration availability',()=>{
   const {CredentialsForm,PortalFrame}=loadComponent('app/portal/client.tsx');
   const html=renderToStaticMarkup(React.createElement(PortalFrame,{title:'Sign in'},React.createElement(CredentialsForm)));
-  assert.match(html,/Invitation-only access/);assert.match(html,/There is no public registration/);
+  assert.match(html,/Sign in with your username and password/);
   assert.match(html,/autoComplete="username"/);assert.match(html,/autoComplete="current-password"/);
   assert.doesNotMatch(html,/signin-with-chatgpt|new-password/);
+  assert.doesNotMatch(html,/href="\/register"/);
+});
+test('public registration form explains posting and requires password confirmation and terms',()=>{
+  const {CredentialsForm}=loadComponent('app/portal/client.tsx');
+  const html=renderToStaticMarkup(React.createElement(CredentialsForm,{registration:true}));
+  assert.match(html,/No invitation needed/);
+  assert.equal((html.match(/autoComplete="new-password"/g)??[]).length,2);
+  assert.match(html,/id="portal-confirm"/);assert.match(html,/type="checkbox" required=""/);
+  assert.match(html,/minLength="16"/);assert.match(html,/maxLength="128"/);
+  assert.match(html,/disabled=""/);assert.match(html,/href="\/login"/);
 });

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync,realpathSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {test} from 'node:test';
+import {pathToFileURL} from 'node:url';
 import ts from 'typescript';
 
 const sourcePath=new URL('../lib/portal-photos.ts',import.meta.url);
@@ -10,8 +11,8 @@ const source=ts.transpileModule(readFileSync(sourcePath,'utf8'),{compilerOptions
 const {sanitizePhoto,createPhotoStore,PhotoValidationError,PhotoQuotaError,MAX_PHOTO_BYTES,MAX_PHOTO_STORAGE_BYTES}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const require=createRequire(import.meta.url);
 const mfPath=require.resolve('miniflare',{paths:[realpathSync('node_modules/wrangler')]});
-const {Miniflare}=await import(mfPath);
-const sharp=(await import(require.resolve('sharp',{paths:[mfPath]}))).default;
+const {Miniflare}=await import(pathToFileURL(mfPath).href);
+const sharp=(await import(pathToFileURL(require.resolve('sharp',{paths:[mfPath]})).href)).default;
 const image=sharp({create:{width:2,height:3,channels:3,background:'#66aa88'}});
 const originalPng=await image.clone().png().toBuffer(),jpeg=await image.clone().jpeg().toBuffer(),webp=await image.clone().webp().toBuffer();
 const pngParts=[originalPng.subarray(0,8)];

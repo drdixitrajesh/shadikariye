@@ -7,10 +7,10 @@ let serial=0;
 const runtime=await createNodePortalRuntime({bindings:{STANDALONE_MODE:'test-portal',PUBLIC_REGISTRATION:'1',PORTAL_KEY:'a'.repeat(64),TURNSTILE_SITE_KEY:'test',TURNSTILE_SECRET_KEY:'test'},outboundService:async request=>{
   assert.equal(new URL(request.url).hostname,'challenges.cloudflare.com');
   const token=(await request.formData()).get('response');
-  return Response.json({success:token==='register-ok'||token==='login-ok',action:token==='login-ok'?'login':'register',hostname:'managelove.com',challenge_ts:new Date().toISOString()});
+  return Response.json({success:token==='register-ok'||token==='login-ok',action:token==='login-ok'?'login':'register',hostname:'vedik-milan.softinator.org',challenge_ts:new Date().toISOString()});
 }});
 async function call(path,body,cookie,ip='registration-'+(++serial)){
-  const response=await runtime.dispatchFetch('https://managelove.com'+path,{method:body?'POST':'GET',headers:{Origin:'https://managelove.com','Content-Type':'application/json','CF-Connecting-IP':ip,...(cookie?{Cookie:cookie}:{})},...(body?{body:JSON.stringify(body)}:{})});
+  const response=await runtime.dispatchFetch('https://vedik-milan.softinator.org'+path,{method:body?'POST':'GET',headers:{Origin:'https://vedik-milan.softinator.org','Content-Type':'application/json','CF-Connecting-IP':ip,...(cookie?{Cookie:cookie}:{})},...(body?{body:JSON.stringify(body)}:{})});
   return {status:response.status,data:await response.json(),cookie:response.headers.get('set-cookie')?.split(';')[0]};
 }
 try{
@@ -23,7 +23,7 @@ try{
   assert.equal((await call('/api/portal/register',{...signup,turnstile:'login-ok'})).status,403);
   assert.equal((await call('/api/portal/register',{...signup,username:'drdixitrajesh'})).status,409);
   assert.equal((await db.prepare("SELECT role,status FROM portal_accounts WHERE username='drdixitrajesh'").first()).status,'invited');
-  const rejected=await runtime.dispatchFetch('https://managelove.com/api/portal/register',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify(signup)});
+  const rejected=await runtime.dispatchFetch('https://vedik-milan.softinator.org/api/portal/register',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify(signup)});
   assert.equal(rejected.status,403);
   const registered=await call('/api/portal/register',signup);
   assert.equal(registered.status,201);assert.ok(registered.cookie?.startsWith('__Host-managelove='));
@@ -45,7 +45,7 @@ try{
   await db.prepare('INSERT INTO portal_photos(key,body,mime,size) VALUES(?,?,?,?)').bind(photoKey,image,'image/png',image.length).run();
   await db.prepare('INSERT INTO profile_photos(profile_id,slot,key) VALUES(?,0,?)').bind(published.data.profile.id,photoKey).run();
   await db.prepare('UPDATE profiles SET photo_key=? WHERE id=?').bind(photoKey,published.data.profile.id).run();
-  async function anonymousPhoto(){return runtime.dispatchFetch('https://managelove.com/api/photo/'+photoKey);}
+  async function anonymousPhoto(){return runtime.dispatchFetch('https://vedik-milan.softinator.org/api/photo/'+photoKey);}
   assert.equal((await anonymousPhoto()).status,401);
   assert.equal((await call('/api/state')).data.profiles.some(p=>p.id===published.data.profile.id),false);
   assert.equal((await call('/api/profile',{...profile,publicListing:'yes'},registered.cookie)).status,400);
