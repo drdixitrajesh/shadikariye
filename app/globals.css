@@ -72,3 +72,59 @@ html[lang=hi] .brand strong{font-family:'Noto Serif Devanagari',serif;font-size:
 
 .contact-details{font-size:1rem}.contact-details address{font-style:normal;margin:20px 0}.help-copy .contact-details a{display:inline;font-size:1rem;margin:0;overflow-wrap:anywhere;text-decoration:underline}
 .mfa-qr{margin:1.25rem 0;text-align:center}.mfa-qr svg{display:block;width:256px;max-width:100%;height:auto;margin:0 auto;background:#fff}.mfa-qr figcaption{margin-top:.65rem;font-size:.9rem;color:var(--muted-foreground)}.mfa-manual{margin:1rem 0}.mfa-manual summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px}.mfa-manual input,.mfa-manual textarea{overflow-wrap:anywhere}
+
+/* Discovery refinement: retain the plum identity and make the working surface readable. */
+.site-shell{--discovery-muted:var(--muted-foreground)}
+.site-shell ::selection{background:var(--secondary);color:var(--foreground)}
+.site-shell input,.site-shell textarea{caret-color:var(--primary)}
+.free-strip{gap:6px 18px;padding:13px 24px;font-size:14px;line-height:1.65}
+.free-strip strong{font-size:16px;letter-spacing:0}
+.free-strip svg{flex:none}
+.public-profile-notice{max-width:1400px;margin:0 auto;padding:14px 30px;align-items:center;color:var(--discovery-muted)}
+.public-profile-notice svg,.results>.demo-notice svg{flex:none}
+.public-profile-notice p,.results>.demo-notice p{font-size:14px;line-height:1.75}
+.public-profile-notice a{color:var(--primary);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.intro{padding:26px 0 30px}
+.intro-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;margin-top:20px}
+.intro-actions .primary{min-height:46px;padding:11px 20px}
+.intro-actions>span{font-size:14px;color:var(--discovery-muted);max-width:30ch;line-height:1.6}
+.community-browse{padding:10px 0;margin-bottom:26px}
+.community-browse button{min-height:44px;font-size:14px;color:var(--primary)}
+.community-browse button.active{color:#fff}
+.results-head p,.results>.demo-notice{color:var(--discovery-muted)}
+.search-field input{min-width:0;font-size:16px;min-height:48px}
+.search-field button{min-width:44px;min-height:44px;display:grid;place-items:center}
+.active-preferences{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:13px 0 0;font-size:14px;color:var(--discovery-muted)}
+.active-preferences>span:not(:first-child){font-weight:600;color:var(--primary)}
+.active-preferences button{min-height:44px;color:var(--primary);text-decoration:underline;text-underline-offset:4px;margin-left:auto;padding:8px 0}
+.results-actions .pick,.mobile-filter-button{min-height:44px!important;font-size:14px!important}
+.filter-sheet .field input{font-size:16px}
+.filter-sheet [data-slot=slider]{padding-block:14px}
+.profile-meta,.community-line,.profile-facts p{overflow-wrap:anywhere}
+.join-note h3{line-height:1.5}
+@media(max-width:760px){
+  .public-profile-notice{padding:13px 20px;align-items:flex-start}
+  .free-strip{font-size:13px;padding:12px 20px;gap:4px 12px}
+  .free-strip span{display:inline-flex;text-align:left}
+  .intro{padding:22px 0 26px}
+  .intro p{font-size:15px;line-height:1.8}
+  .intro-actions{margin-top:16px;gap:10px 16px}
+  .intro-actions>span{font-size:13px}
+  .main-nav [data-slot=tabs-trigger]{font-size:14px;min-height:48px}
+  .language-button{min-height:44px}
+  .community-browse button{font-size:14px;padding:8px 13px}
+  .results-head p{font-size:14px;line-height:1.6}
+  .results>.demo-notice p{font-size:13px;line-height:1.75}
+}
+@media(max-width:500px){
+  .results-head{flex-direction:column;align-items:stretch;gap:14px}
+  .results-actions{flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+  .results-actions .pick{width:auto!important;min-width:160px;padding:10px 12px!important}
+  .mobile-filter-button{padding:10px 14px}
+  .intro-actions{align-items:flex-start;flex-direction:column}
+  .intro-actions>span{max-width:none}
+  .public-profile-notice p{font-size:13px}
+  .main-nav [data-slot=tabs-trigger]{padding:0 6px!important;font-size:13px}
+  .active-preferences button{margin-left:0}
+  .site-shell input:not([type=checkbox]):not([type=radio]),.site-shell textarea{font-size:16px}
+}
