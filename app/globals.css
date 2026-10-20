@@ -205,3 +205,5 @@ html[lang=hi] .brand strong{font-family:'Noto Serif Devanagari',serif;font-size:
   .portal-page{padding:18px 8px}
   .portal-page .security-panel{padding:16px 0;border:0;background:transparent}
 }
+
+.backoffice-access{display:flex;justify-content:flex-end;padding:0 max(20px,calc((100vw - 1340px)/2));background:var(--background);border-bottom:1px solid var(--border)}.backoffice-access a{display:inline-flex;align-items:center;min-height:40px;color:var(--primary);font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:4px}.backoffice-access a:hover{text-decoration-thickness:2px}.backoffice-access a:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
