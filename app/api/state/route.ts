@@ -5,9 +5,11 @@ import {DEMO_PROFILES} from '@/lib/matrimony';
 import {otpReady,verified,indianDay,reserveView,blocked,ageFromDate,testAccess,memberAccess} from '@/lib/security';
 import {isPortal} from '@/lib/portal-auth';
 import {publicProfiles} from '@/lib/public-profiles';
+import {accountHasMobile,requiresAccountMobile} from '@/lib/mobile-access';
+import {portalUser} from '@/lib/portal-context';
 export const dynamic='force-dynamic';
 export async function GET(){
-  const owner=await identity();
+  const owner=requiresAccountMobile()&&!await accountHasMobile(portalUser())?null:await identity();
   try{
     if(!owner){const profiles=await publicProfiles();return json({profiles:profiles.length?profiles:DEMO_PROFILES,own:null,saved:[],sent:[],received:[],isAdmin:false,security:{otpReady:otpReady(),verified:false},quota:{limit:20,used:0,day:indianDay()}});}
     const isVerified=await verified(owner);

@@ -3,20 +3,26 @@ import {normalizeMobile} from './account-contact';
 import type {PortalUser} from './portal-context';
 
 export function requiresAccountMobile(){return env.STANDALONE_MODE==='test-portal'&&env.REQUIRE_ACCOUNT_MOBILE!=='0';}
-const publicPages=new Set(['/login','/register','/forgot-password','/activate','/account','/terms']);
+const publicPages=new Set(['/','/portraits.png','/login','/register','/forgot-password','/activate','/account','/terms']);
 const accountApis=new Set(['/api/portal/me','/api/portal/login','/api/portal/register','/api/portal/recover','/api/portal/activate','/api/portal/logout','/api/portal/contact','/api/portal/mfa']);
+
+export async function accountHasMobile(user:PortalUser|null){
+  if(!user)return false;
+  const row=await env.DB!.prepare("SELECT mobile FROM portal_accounts WHERE id=? AND status='active'").bind(user.id).first<{mobile:string|null}>();
+  return Boolean(normalizeMobile(row?.mobile));
+}
 
 export async function mobileAccessGate(request:Request,user:PortalUser|null){
   if(!requiresAccountMobile())return null;
   const url=new URL(request.url),path=url.pathname;
-  // Only application code/styles/fonts and account setup are public. Photos,
-  // directory/profile pages, RSC requests and every data API use this same gate.
+  // Public reads use their own approved, consented profile projection.
+  // Every member mutation, private API and administration still uses this gate.
+  const publicRead=(request.method==='GET'||request.method==='HEAD')&&(path==='/api/state'||/^\/api\/photo\/[0-9a-f-]{36}$/.test(path));
+  if(publicRead)return null;
   if(publicPages.has(path)||accountApis.has(path)||path.startsWith('/_next/static/')||path==='/favicon.ico')return null;
-  let mobile='';
-  if(user){const row=await env.DB!.prepare('SELECT mobile FROM portal_accounts WHERE id=? AND status=\'active\'').bind(user.id).first<{mobile:string|null}>();mobile=normalizeMobile(row?.mobile);}
-  if(user&&mobile)return null;
+  if(await accountHasMobile(user))return null;
   const location=user?'/account':'/login',status=user?403:401;
   const headers={'Cache-Control':'private, no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'};
-  if(path.startsWith('/api/'))return Response.json({error:user?'वेबसाइट की जानकारी देखने से पहले मेरा खाता खोलकर मोबाइल नंबर जोड़ें। / Add your mobile number in My account first.':'जानकारी देखने के लिए मोबाइल नंबर वाले खाते से लॉग इन करें। / Sign in with an account that has a mobile number.',code:user?'MOBILE_REQUIRED':'SIGN_IN_REQUIRED',redirect:location},{status,headers});
+  if(path.startsWith('/api/'))return Response.json({error:user?'इस सदस्य सुविधा के लिए मेरा खाता खोलकर मोबाइल नंबर जोड़ें। / Add your mobile number in My account to use member features.':'इस सदस्य सुविधा के लिए लॉग इन करें। / Sign in to use this member feature.',code:user?'MOBILE_REQUIRED':'SIGN_IN_REQUIRED',redirect:location},{status,headers});
   return new Response(null,{status:303,headers:{...headers,Location:location}});
 }
