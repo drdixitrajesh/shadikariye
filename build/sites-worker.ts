@@ -6,6 +6,7 @@ import {withPortalUser} from '../lib/portal-context';
 import {resolveSession,handlePortal} from '../lib/portal-auth';
 import {createPhotoStore} from '../lib/portal-photos';
 import {boundedPortalRequest,RequestLimitError} from '../lib/portal-request';
+import {mobileAccessGate} from '../lib/mobile-access';
 export {PortalPasswordService} from '../lib/portal-password';
 
 export default {
@@ -71,6 +72,8 @@ export default {
       catch(error){return Response.json({error:error instanceof RequestLimitError?'Request is too large. Photos must be at most 256 KiB.':'Free service temporarily unavailable or quota reached.'},{status:error instanceof RequestLimitError?413:503,headers:{'Cache-Control':'no-store'}});}
     }
     return withPortalUser(user,async()=>{
+      try{const blocked=await mobileAccessGate(request,user);if(blocked)return blocked;}
+      catch{return Response.json({error:'Access check unavailable. Please retry.'},{status:503,headers:{'Cache-Control':'no-store'}});}
       const portal=await handlePortal(request);if(portal)return portal;
       if(env.STANDALONE_MODE==='test-portal'&&new URL(request.url).pathname==='/api/otp')return Response.json({error:'Paid SMS is disabled. Invitation-only fictional test accounts use password authentication.'},{status:403,headers:{'Cache-Control':'no-store'}});
       const response=await runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
@@ -81,5 +84,5 @@ export default {
       return response;
     });
   },
-  async scheduled(_event:ScheduledController,env:Cloudflare.Env,ctx:ExecutionContext){if(env.STANDALONE_MODE==='test-portal'&&env.DB)ctx.waitUntil((async()=>{await expireProfiles(env.DB!,createPhotoStore(env.DB!));await env.DB!.batch([env.DB!.prepare('DELETE FROM portal_sessions WHERE expires_at<?').bind(Date.now()),env.DB!.prepare('DELETE FROM portal_throttle WHERE window<?').bind(Math.floor(Date.now()/900000)-2),env.DB!.prepare('DELETE FROM portal_activations WHERE expires_at<?').bind(Date.now()-86400000)]);})());},
+  async scheduled(_event:ScheduledController,env:Cloudflare.Env,ctx:ExecutionContext){if(env.STANDALONE_MODE==='test-portal'&&env.DB)ctx.waitUntil((async()=>{await expireProfiles(env.DB!,createPhotoStore(env.DB!));await env.DB!.batch([env.DB!.prepare('DELETE FROM portal_sessions WHERE expires_at<?').bind(Date.now()),env.DB!.prepare('DELETE FROM portal_credential_attempts WHERE expires_at<?').bind(Date.now()),env.DB!.prepare('DELETE FROM portal_throttle WHERE window<?').bind(Math.floor(Date.now()/900000)-2),env.DB!.prepare('DELETE FROM portal_activations WHERE expires_at<?').bind(Date.now()-86400000)]);})());},
 };

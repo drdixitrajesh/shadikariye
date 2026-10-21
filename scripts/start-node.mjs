@@ -14,6 +14,7 @@ const bindings = {
   DB: createDatabase(databasePath),
   STANDALONE_MODE: 'test-portal',
   PUBLIC_REGISTRATION: process.env.PUBLIC_REGISTRATION,
+  REQUIRE_ACCOUNT_MOBILE: '1',
   PORTAL_KEY: process.env.PORTAL_KEY,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY,

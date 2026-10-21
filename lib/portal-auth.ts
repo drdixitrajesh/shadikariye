@@ -1,6 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {type PortalUser,portalUser} from './portal-context';
 import {accountContact,normalizeMobile} from './account-contact';
+import {reserveCredentialAttempt,clearCredentialAttempts} from './credential-attempts';
 const encoder=new TextEncoder();
 export const SESSION_COOKIE='__Host-managelove';
 export function isPortal(){return env.STANDALONE_MODE==='test-portal';}
@@ -99,14 +100,18 @@ export async function handlePortal(request:Request){
       const token=typeof body.token==='string'?body.token:'';
       if(!await throttle(request,action,action==='login'?(mobile||(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown')):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
       if(!await turnstile(body.turnstile,action,new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
-      if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
-      const password=body.password.normalize('NFKC');
       if(action==='login'){
         const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE '+(body.mobile!==undefined?'mobile=?':'username=?')).bind(body.mobile!==undefined?(mobile||'invalid-mobile'):username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
-        const check=await passwordService(account?.id??'unknown',password,account?.password_hash??'invalid');
+        const attemptKey=await digest('login:'+(account?.id??(body.mobile!==undefined?mobile:username)));
+        if(!await reserveCredentialAttempt(env.DB!,attemptKey))return portalJson({error:'3 गलत प्रयास हो चुके हैं। 15 मिनट बाद प्रयास करें। / Three failed attempts. Try again after 15 minutes.'},429);
+        if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
+        const check=await passwordService(account?.id??'unknown',body.password.normalize('NFKC'),account?.password_hash??'invalid');
         if(!account||account.status!=='active'||!check.ok)return portalJson({error:'मोबाइल / यूज़रनेम या पासवर्ड गलत है। / Invalid mobile, username or password.'},401);
+        await clearCredentialAttempts(env.DB!,attemptKey);
         return portalJson({ok:true,mfaRequired:account.role==='admin'},200,await makeSession(account));
       }
+      if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
+      const password=body.password.normalize('NFKC');
       if(!/^[a-f0-9]{64}$/.test(token))return portalJson({error:'Activation link is invalid or expired'},400);
       const tokenHash=await digest(token),now=Date.now();
       const activation=await env.DB!.prepare('SELECT a.id,a.role,a.session_version,t.id AS activation_id FROM portal_activations t JOIN portal_accounts a ON a.id=t.account_id WHERE t.token_hash=? AND t.used_at IS NULL AND t.expires_at>? AND a.status=\'invited\'').bind(tokenHash,now).first<{id:string;role:string;session_version:number;activation_id:string}>();
@@ -149,6 +154,8 @@ export async function handlePortal(request:Request){
       const body=await readBody(request);
       if(!await throttle(request,'mfa',user.id))return portalJson({error:'Too many attempts. Wait 15 minutes.'},429);
       if(!account.mfa_secret)return portalJson({error:'Enroll MFA first'},409);
+      const attemptKey=await digest('mfa:'+user.id);
+      if(!await reserveCredentialAttempt(env.DB!,attemptKey))return portalJson({error:'3 गलत कोड के बाद सत्यापन रुक गया है। 15 मिनट बाद प्रयास करें। / Three failed codes. Try again after 15 minutes.'},429);
       const counter=await mfaCounter(await decryptMfa(account.mfa_secret),String(body.code??''));
       if(counter===null||counter<=account.mfa_counter)return portalJson({error:'Invalid or already used authenticator code'},403);
       const claim=randomToken();
@@ -157,6 +164,7 @@ export async function handlePortal(request:Request){
         env.DB!.prepare('UPDATE portal_sessions SET mfa_verified=1,expires_at=? WHERE token_hash=? AND account_id=? AND session_version=? AND expires_at>? AND EXISTS(SELECT 1 FROM portal_accounts WHERE id=? AND mfa_claim=? AND status=\'active\' AND session_version=?)').bind(Date.now()+7200000,user.sessionHash,user.id,user.sessionVersion,Date.now(),user.id,claim,user.sessionVersion),
       ]);
       if(!results[1].meta.changes)return portalJson({error:'Authenticator code already used'},403);
+      await clearCredentialAttempts(env.DB!,attemptKey);
       // Rotate the session after elevation to prevent fixation and revoke the
       // password-only token. The account counter prevents cross-session replay.
       const cookie=await makeSession({id:user.id,role:'admin',session_version:user.sessionVersion},true);

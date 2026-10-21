@@ -55,6 +55,7 @@ test('real login form uses existing credentials and waits for registration avail
   const html=renderToStaticMarkup(React.createElement(PortalFrame,{title:'Sign in'},React.createElement(CredentialsForm)));
   assert.match(html,/Sign in with your mobile number and password/);
   assert.match(html,/id="portal-mobile"/);assert.match(html,/Use username/);
+  assert.match(html,/Three failed attempts lock sign-in for 15 minutes/);
   assert.match(html,/autoComplete="username"/);assert.match(html,/autoComplete="current-password"/);
   assert.doesNotMatch(html,/signin-with-chatgpt|new-password/);
   assert.doesNotMatch(html,/href="\/register"/);
@@ -66,6 +67,7 @@ test('public registration form explains posting and requires password confirmati
   assert.match(html,/id="portal-mobile"[^>]*required/);
   assert.match(html,/id="portal-email" type="email"/);
   assert.doesNotMatch(html,/id="portal-email"[^>]*required/);
+  assert.doesNotMatch(html,/admin/i);assert.match(html,/contact details are not displayed publicly/);
   assert.equal((html.match(/autoComplete="new-password"/g)??[]).length,2);
   assert.match(html,/id="portal-confirm"/);assert.match(html,/type="checkbox" required=""/);
   assert.match(html,/minLength="16"/);assert.match(html,/maxLength="128"/);

@@ -7,5 +7,6 @@ export async function migrateAccountContacts(db){
   if(!names.has('mobile'))statements.push(db.prepare('ALTER TABLE portal_accounts ADD COLUMN mobile TEXT'));
   if(!names.has('contact_email'))statements.push(db.prepare("ALTER TABLE portal_accounts ADD COLUMN contact_email TEXT NOT NULL DEFAULT ''"));
   statements.push(db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS portal_accounts_mobile ON portal_accounts(mobile) WHERE mobile IS NOT NULL'));
+  statements.push(db.prepare('CREATE TABLE IF NOT EXISTS portal_credential_attempts(key TEXT PRIMARY KEY,attempts INTEGER NOT NULL,expires_at INTEGER NOT NULL)'));
   await db.batch(statements);
 }
