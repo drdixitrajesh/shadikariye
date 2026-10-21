@@ -21,7 +21,7 @@ export default function Account(){
           <form onSubmit={verify}><div className="field"><label htmlFor="mfa-code">Authenticator कोड / Authenticator code</label><input id="mfa-code" required autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,''))} disabled={busy}/></div><button className="primary" disabled={busy||code.length!==6}>कोड सत्यापित करें / Verify code</button></form>
         </>}
       </section>:<p><a className="primary" href={me.user.role==='admin'?'/admin':'/'}>{me.user.role==='admin'?'प्रशासन खोलें / Open administration':'प्रोफ़ाइल खोजें / Discover profiles'}</a></p>}
-      {(me.user.role!=='admin'||me.user.mfa)&&<ContactDetails/>}
+      {(me.user.role!=='admin'||me.user.mfa)&&<ContactDetails username={me.user.username}/>}
       <p><LogoutButton/></p>
     </>}
     {notice&&<p role="status">{notice}</p>}{error&&<p role="alert" className="form-error">{error}</p>}
