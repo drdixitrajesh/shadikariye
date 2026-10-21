@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { createDatabase } from './node-d1.mjs';
 import { importSeedIfMissing } from './node-seed.mjs';
 import { migrateAccountContacts } from './node-migrations.mjs';
+import { disablePublicImageOptimizer } from './node-private-images.mjs';
 
 process.env.NODE_ENV = 'production';
 const databasePath = resolve(process.env.DATABASE_PATH ?? '/data/managelove.sqlite');
@@ -33,6 +34,7 @@ bindings.PASSWORD_SERVICE = {
   get: () => ({ fetch: (url, init) => passwordService.fetch(new Request(url, init)) }),
 };
 const { server } = await startProdServer({ port: Number(process.env.PORT ?? 3000), host: '0.0.0.0' });
+disablePublicImageOptimizer(server);
 server.requestTimeout = 15000;
 server.headersTimeout = 10000;
 server.maxRequestsPerSocket = 1000;
