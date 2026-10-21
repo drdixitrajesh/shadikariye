@@ -107,14 +107,16 @@ export async function handlePortal(request:Request){
     if(path==='/api/portal/logout'&&request.method==='POST'){if(user)await env.DB!.prepare('DELETE FROM portal_sessions WHERE token_hash=?').bind(user.sessionHash).run();return portalJson({ok:true},200,sessionCookie('',0));}
     if((path==='/api/portal/login'||path==='/api/portal/activate')&&request.method==='POST'){
       const body=await readBody(request),action=path.endsWith('login')?'login':'activate';
-      const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
-      const mobile=normalizeMobile(body.mobile);
+      const identifier=typeof body.identifier==='string'?body.identifier.trim().toLowerCase():'';
+      const mobile=normalizeMobile(body.identifier!==undefined?identifier:body.mobile);
+      const username=body.identifier!==undefined?(mobile?'':identifier):typeof body.username==='string'?body.username.trim().toLowerCase():'';
+      const mobileLogin=body.identifier!==undefined?Boolean(mobile):body.mobile!==undefined;
       const token=typeof body.token==='string'?body.token:'';
       if(!await throttle(request,action,action==='login'?(mobile||(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown')):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
       if(!await turnstile(body.turnstile,action,new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       if(action==='login'){
-        const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE '+(body.mobile!==undefined?'mobile=?':'username=?')).bind(body.mobile!==undefined?(mobile||'invalid-mobile'):username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
-        const attemptKey=await digest('login:'+(account?.id??(body.mobile!==undefined?mobile:username)));
+        const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE '+(mobileLogin?'mobile=?':'username=?')).bind(mobileLogin?(mobile||'invalid-mobile'):username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
+        const attemptKey=await digest('login:'+(account?.id??(mobileLogin?mobile:username)));
         if(!await reserveCredentialAttempt(env.DB!,attemptKey))return portalJson({error:'3 गलत प्रयास हो चुके हैं। 15 मिनट बाद प्रयास करें। / Three failed attempts. Try again after 15 minutes.'},429);
         if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
         const check=await passwordService(account?.id??'unknown',body.password.normalize('NFKC'),account?.password_hash??'invalid');

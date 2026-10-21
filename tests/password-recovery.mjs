@@ -52,6 +52,8 @@ try{
   eq((await call('/api/portal/activate',{token,password:newPassword,turnstile:'activate'})).status,400);
   eq((await call('/api/portal/login',{mobile:signup.mobile,password:signup.password,turnstile:'login'})).status,401);
   eq((await call('/api/portal/login',{mobile:signup.mobile,password:newPassword,turnstile:'login'})).status,200);
+  eq((await call('/api/portal/login',{identifier:signup.username,password:newPassword,turnstile:'login'})).status,200);
+  eq((await call('/api/portal/login',{identifier:'+91 98765 43210',password:newPassword,turnstile:'login'})).status,200);
   eq((await db.prepare('SELECT reviewed_by FROM portal_recovery_requests WHERE account_id=?').bind(original.id).first()).reviewed_by,adminId);
   console.log(`PASS: ${checks} recovery checks: generic public replies, Turnstile/origin, three attempts, private MFA queue, identity confirmation, 30-minute hashed tokens, old-session revocation and single-use password reset.`);
 }finally{await runtime.dispose();}

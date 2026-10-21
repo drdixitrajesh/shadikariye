@@ -53,8 +53,8 @@ test('real activation form enforces new password bounds without rendering an inv
 test('real login form uses existing credentials and waits for registration availability',()=>{
   const {CredentialsForm,PortalFrame}=loadComponent('app/portal/client.tsx');
   const html=renderToStaticMarkup(React.createElement(PortalFrame,{title:'Sign in'},React.createElement(CredentialsForm)));
-  assert.match(html,/Sign in with your mobile number and password/);
-  assert.match(html,/id="portal-mobile"/);assert.match(html,/Use username/);
+  assert.match(html,/Sign in with your mobile number or username and password/);
+  assert.match(html,/id="portal-mobile"/);assert.match(html,/name="identifier"/);
   assert.match(html,/Three failed attempts lock sign-in for 15 minutes/);
   assert.match(html,/href="\/forgot-password"/);
   assert.match(html,/autoComplete="username"/);assert.match(html,/autoComplete="current-password"/);
