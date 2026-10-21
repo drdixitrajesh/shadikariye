@@ -8,7 +8,7 @@
   "scripts": {
     "build:node": "node scripts/build-node.mjs",
     "start:node": "node scripts/start-node.mjs",
-    "test:node": "node --test scripts/node-d1.test.mjs scripts/node-seed.test.mjs scripts/node-migrations.test.mjs scripts/node-private-images.test.mjs tests/credential-attempts.test.mjs",
+    "test:node": "node --test scripts/node-d1.test.mjs scripts/node-seed.test.mjs scripts/node-migrations.test.mjs scripts/node-private-images.test.mjs scripts/node-photo-protection.test.mjs tests/credential-attempts.test.mjs",
     "install:ci": "bash scripts/install-pnpm.sh",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
@@ -43,6 +43,7 @@
     "react-hook-form": "^7.85.0",
     "react-resizable-panels": "^4.12.2",
     "recharts": "^3.8.0",
+    "sharp": "0.35.4",
     "sonner": "^2.0.8",
     "tailwind-merge": "3.6.0",
     "vaul": "^1.1.2",

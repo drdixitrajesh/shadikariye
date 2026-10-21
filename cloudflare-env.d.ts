@@ -3,6 +3,7 @@ declare namespace Cloudflare {
     STANDALONE_MODE?: "demo" | "test-portal";
     PUBLIC_REGISTRATION?: string;
     REQUIRE_ACCOUNT_MOBILE?: string;
+    PHOTO_PROTECTION?: {render:(body:ArrayBuffer,viewerTag:string)=>Promise<ArrayBuffer>};
     PORTAL_KEY?: string;
     PASSWORD_SERVICE?: DurableObjectNamespace;
     DEPLOYMENT_SHA?: string;

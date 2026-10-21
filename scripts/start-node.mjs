@@ -3,6 +3,7 @@ import { createDatabase } from './node-d1.mjs';
 import { importSeedIfMissing } from './node-seed.mjs';
 import { migrateAccountContacts } from './node-migrations.mjs';
 import { disablePublicImageOptimizer } from './node-private-images.mjs';
+import { createPhotoProtection } from './node-photo-protection.mjs';
 
 process.env.NODE_ENV = 'production';
 const databasePath = resolve(process.env.DATABASE_PATH ?? '/data/managelove.sqlite');
@@ -16,6 +17,7 @@ const bindings = {
   STANDALONE_MODE: 'test-portal',
   PUBLIC_REGISTRATION: process.env.PUBLIC_REGISTRATION,
   REQUIRE_ACCOUNT_MOBILE: '1',
+  PHOTO_PROTECTION: createPhotoProtection(),
   PORTAL_KEY: process.env.PORTAL_KEY,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY,

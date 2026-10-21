@@ -1,11 +1,12 @@
 import { resolve } from 'node:path';
 import { createDatabase } from '../scripts/node-d1.mjs';
+import {createPhotoProtection} from '../scripts/node-photo-protection.mjs';
 
 export async function createNodePortalRuntime({ bindings, outboundService }) {
   const db = createDatabase(':memory:');
   // Historical workflow suites also cover the retained public-listing mode.
   // Privacy-gate tests explicitly enable the production setting ('1').
-  const env = { REQUIRE_ACCOUNT_MOBILE:'0', ...bindings, DB: db };
+  const env = { REQUIRE_ACCOUNT_MOBILE:'0', PHOTO_PROTECTION:createPhotoProtection(), ...bindings, DB: db };
   globalThis[Symbol.for('managelove.node.env')] = env;
   process.env.NODE_ENV = 'production';
   // The network boundary is mocked only in this isolated test process.

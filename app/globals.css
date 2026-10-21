@@ -207,3 +207,8 @@ html[lang=hi] .brand strong{font-family:'Noto Serif Devanagari',serif;font-size:
 }
 
 .backoffice-access{display:flex;justify-content:flex-end;padding:0 max(20px,calc((100vw - 1340px)/2));background:var(--background);border-bottom:1px solid var(--border)}.backoffice-access a{display:inline-flex;align-items:center;min-height:40px;color:var(--primary);font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:4px}.backoffice-access a:hover{text-decoration-thickness:2px}.backoffice-access a:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+
+img,.portrait,.photo-wrap,.member-photo-gallery{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}img{-webkit-user-drag:none}
+
+.profile-card,.detail-sheet,.member-preview-section{user-select:none;-webkit-user-select:none}
+@media print{.portrait img,.photo-wrap img,.member-photo-gallery img,.detail-photos img{visibility:hidden!important}}

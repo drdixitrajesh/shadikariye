@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createNodePortalRuntime} from './node-portal-runtime.mjs';
+import sharp from 'sharp';
 
 process.env.TRUST_CLOUDFLARE_PROXY='1';
 const origin='https://vedik-milan.softinator.org';
@@ -17,7 +18,7 @@ try{
   const account=await db.prepare('SELECT id FROM portal_accounts WHERE username=?').bind(signup.username).first();
   const photoKey='12345678-1234-4234-8234-123456789012';
   await db.prepare("UPDATE profiles SET data=json_set(data,'$.publicListing',json('true'),'$.testAccount',json('false'),'$.approvalStatus','approved'),photo_key=? WHERE owner=(SELECT id FROM portal_accounts WHERE username='ananya.test')").bind(photoKey).run();
-  const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aJvYAAAAASUVORK5CYII=','base64');
+  const image=await sharp({create:{width:600,height:800,channels:3,background:'#cab8a8'}}).png().toBuffer();
   await db.prepare('INSERT INTO portal_photos(key,body,mime,size) VALUES(?,?,?,?)').bind(photoKey,image,'image/png',image.length).run();
   for(const path of ['/','/?community=Gaur','/admin','/portraits.png','/_next/image?url=%2Fapi%2Fphoto%2F'+photoKey]){
     const response=await call(path);eq(response.status,303);eq(response.headers.get('location'),'/login');eq(response.headers.get('cache-control'),'private, no-store');
@@ -29,7 +30,13 @@ try{
   eq((await call('/',{headers:{RSC:'1','Next-Router-Prefetch':'1'}})).status,303);
   for(const path of ['/login','/register','/terms','/account','/api/portal/me','/api/health'])eq((await call(path)).status,200);
   eq((await call('/api/state',{cookie})).status,200);
-  eq((await call('/api/photo/'+photoKey,{cookie})).status,200);
+  const markedPhoto=await call('/api/photo/'+photoKey,{cookie});eq(markedPhoto.status,200);eq(markedPhoto.headers.get('x-photo-protection'),'watermark-v1');eq(markedPhoto.headers.get('content-type'),'image/jpeg');
+  const marked=Buffer.from(await markedPhoto.arrayBuffer());eq(marked.equals(image),false);
+  const rawAttempt=await call('/api/photo/'+photoKey+'?raw=1&download=1',{cookie});eq(rawAttempt.headers.get('x-photo-protection'),'watermark-v1');eq(Buffer.from(await rawAttempt.arrayBuffer()).equals(marked),true);
+  const source=await db.prepare('SELECT body FROM portal_photos WHERE key=?').bind(photoKey).first('body');eq(Buffer.from(source).equals(image),true);
+  const protection=globalThis[Symbol.for('managelove.node.env')].PHOTO_PROTECTION;delete globalThis[Symbol.for('managelove.node.env')].PHOTO_PROTECTION;
+  eq((await call('/api/photo/'+photoKey,{cookie})).status,503);
+  globalThis[Symbol.for('managelove.node.env')].PHOTO_PROTECTION=protection;
   await db.prepare('UPDATE portal_accounts SET mobile=NULL WHERE id=?').bind(account.id).run();
   const legacyPage=await call('/',{cookie});eq(legacyPage.status,303);eq(legacyPage.headers.get('location'),'/account');
   for(const path of ['/api/state','/api/photo/'+photoKey,'/api/portal/admin/accounts'])eq((await call(path,{cookie})).status,403);
