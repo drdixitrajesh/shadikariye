@@ -16,7 +16,7 @@ export function PortalFrame({title,children}:{title:string;children:ReactNode}){
 export function LogoutButton({label='लॉग आउट / Log out'}:{label?:string}){const [busy,setBusy]=useState(false),[error,setError]=useState('');return <><button type="button" className="text-button" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await portalApi('/api/portal/logout',{});window.location.assign('/');}catch(e){setError((e as Error).message);setBusy(false);}}}>{label}</button>{error&&<span role="alert" className="form-error">{error}</span>}</>;}
 type TurnstileAPI={render:(container:HTMLElement,options:Record<string,unknown>)=>string;execute:(id:string)=>void;reset:(id:string)=>void;remove:(id:string)=>void};
 declare global{interface Window{turnstile?:TurnstileAPI;}}
-export function useTurnstile(siteKey:string,action:'login'|'activate'|'register'){
+export function useTurnstile(siteKey:string,action:'login'|'activate'|'register'|'recover'){
   const container=useRef<HTMLDivElement>(null),widget=useRef<string|null>(null),resolver=useRef<{resolve:(token:string)=>void;reject:(error:Error)=>void}|null>(null);
   const [ready,setReady]=useState(false),[error,setError]=useState('');
   useEffect(()=>{
@@ -56,7 +56,7 @@ export function CredentialsForm({activation=false,registration=false}:{activatio
     {(activation||registration)&&<div className="field"><label htmlFor="portal-confirm">पासवर्ड फिर लिखें / Confirm password</label><input id="portal-confirm" type="password" required minLength={16} maxLength={128} autoComplete="new-password" value={confirmation} onChange={e=>setConfirmation(e.target.value)} disabled={busy}/></div>}
     {registration&&<><p>यूज़रनेम: 3–40 English letters, numbers, dot, underscore or hyphen. अपना पासवर्ड सुरक्षित रखें। / Keep your password safe.</p><label className="consent-box"><input type="checkbox" required checked={termsAccepted} onChange={e=>setTermsAccepted(e.target.checked)} disabled={busy}/> मैं <a href="/terms" target="_blank" rel="noopener">नियम और डिस्क्लेमर / Terms & disclaimer</a> स्वीकार करता/करती हूँ।</label>{me&&!me.publicRegistration&&<p role="alert">नया खाता बनाना अभी उपलब्ध नहीं है। / Registration is currently unavailable.</p>}</>}
     {activation&&!hasToken&&<p role="status">पूरा आमंत्रण लिंक खोलें। लिंक का # भाग आवश्यक है। / Open the complete invitation link, including its # fragment.</p>}
-    {!activation&&!registration&&<p>3 गलत प्रयासों के बाद लॉगिन 15 मिनट के लिए रुक जाएगा। / Three failed attempts lock sign-in for 15 minutes.</p>}
+    {!activation&&!registration&&<><p><Link href="/forgot-password">पासवर्ड भूल गए? / Forgot password?</Link></p><p>3 गलत प्रयासों के बाद लॉगिन 15 मिनट के लिए रुक जाएगा। / Three failed attempts lock sign-in for 15 minutes.</p></>}
     <div ref={challengeContainer} aria-label="Cloudflare security check"/>
     {(error||challengeError)&&<p role="alert" className="form-error">{error||challengeError}</p>}
     {me&&!me.siteKey&&<p role="status">लॉग इन अभी उपलब्ध नहीं है। / Sign-in is not available yet.</p>}

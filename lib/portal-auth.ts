@@ -40,7 +40,7 @@ export async function throttle(request:Request,scope:string,subject='',limits={i
   const rows=await env.DB!.batch(keys.map(k=>env.DB!.prepare('INSERT INTO portal_throttle (key,window,count) VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window=excluded.window THEN count+1 ELSE 1 END,window=excluded.window RETURNING count').bind(k.key,window)));
   return rows.every((row,i)=>Number((row.results?.[0] as {count?:number})?.count??999)<=keys[i].limit);
 }
-export async function turnstile(token:unknown,action:'login'|'activate'|'register',hostname='managelove.com'){
+export async function turnstile(token:unknown,action:'login'|'activate'|'register'|'recover',hostname='managelove.com'){
   if(typeof token!=='string'||token.length<1||token.length>2048||!env.TURNSTILE_SECRET_KEY)return false;
   try{
     const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:env.TURNSTILE_SECRET_KEY,response:token}),signal:AbortSignal.timeout(10000)});
@@ -77,6 +77,18 @@ export async function handlePortal(request:Request){
     if(path==='/api/portal/me'&&request.method==='GET')return portalJson({user:user?{id:user.id,username:user.username,role:user.role,testAccount:user.testAccount,mfa:user.mfa}:null,siteKey:env.TURNSTILE_SITE_KEY,mfaRequired:user?.role==='admin'&&!user.mfa,publicRegistration:publicRegistration()});
     if(!['GET','POST'].includes(request.method))return portalJson({error:'Method not allowed'},405);
     if(request.method==='POST'&&!sameOrigin(request))return portalJson({error:'Invalid request origin'},403);
+    if(path==='/api/portal/recover'&&request.method==='POST'){
+      const body=await readBody(request),identifier=typeof body.identifier==='string'?body.identifier.trim().toLowerCase():'';
+      const mobile=normalizeMobile(identifier);
+      if(!mobile&&!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(identifier))return portalJson({error:'पंजीकृत मोबाइल नंबर या यूज़रनेम दें। / Enter your registered mobile or username.'},400);
+      if(!await throttle(request,'recover',mobile||identifier,{ip:6,subject:3,global:80}))return portalJson({error:'3 प्रयासों के बाद 15 मिनट प्रतीक्षा करें। / Wait 15 minutes after three attempts.'},429);
+      if(!await turnstile(body.turnstile,'recover',new URL(request.url).hostname))return portalJson({error:'सुरक्षा जांच पूरी करें और फिर प्रयास करें। / Complete the security check and retry.'},403);
+      const account=await env.DB!.prepare('SELECT id,role,status FROM portal_accounts WHERE '+(mobile?'mobile=?':'username=?')).bind(mobile||identifier).first<{id:string;role:string;status:string}>();
+      const key=await digest('recover:'+(account?.id??(mobile||identifier)));
+      if(!await reserveCredentialAttempt(env.DB!,key))return portalJson({error:'3 प्रयासों के बाद 15 मिनट प्रतीक्षा करें। / Wait 15 minutes after three attempts.'},429);
+      if(account?.role==='member'&&account.status!=='disabled')await env.DB!.prepare('INSERT INTO portal_recovery_requests(account_id,requested_at) VALUES(?,?) ON CONFLICT(account_id) DO UPDATE SET requested_at=excluded.requested_at,resolved_at=NULL,reviewed_by=NULL').bind(account.id,Date.now()).run();
+      return portalJson({ok:true,message:'यदि यह जानकारी किसी पात्र खाते से मेल खाती है, तो सहायता अनुरोध दर्ज हो गया है। पहचान की पुष्टि के बाद निजी रीसेट लिंक दिया जाएगा। SMS या Email अपने आप नहीं भेजा जाता। / If the details match an eligible account, a recovery request has been recorded. A private reset link follows identity verification; no automatic SMS or email is sent.'},202);
+    }
     if(path==='/api/portal/register'&&request.method==='POST'){
       if(!publicRegistration())return portalJson({error:'Registration unavailable'},404);
       const body=await readBody(request);
@@ -176,18 +188,23 @@ export async function handlePortal(request:Request){
       if(request.method==='GET'){
         const accounts=await env.DB!.prepare('SELECT id,username,role,status FROM portal_accounts ORDER BY role,username').all();
         const audit=await env.DB!.prepare('SELECT id,actor,target,action,reason,created_at FROM admin_actions ORDER BY created_at DESC LIMIT 100').all();
-        return portalJson({accounts:accounts.results,audit:audit.results});
+        const recovery=await env.DB!.prepare("SELECT a.id AS accountId,a.username,a.mobile,a.contact_email AS email,r.requested_at AS requestedAt FROM portal_recovery_requests r JOIN portal_accounts a ON a.id=r.account_id WHERE r.resolved_at IS NULL AND a.role='member' AND a.status<>'disabled' ORDER BY r.requested_at LIMIT 100").all();
+        return portalJson({accounts:accounts.results,audit:audit.results,recoveryRequests:recovery.results});
       }
       const body=await readBody(request),accountId=String(body.accountId??''),reason=String(body.reason??'').trim();
       if(reason.length<10||reason.length>1000)return portalJson({error:'Provide a reason of 10–1000 characters'},400);
       const account=await env.DB!.prepare('SELECT id,role FROM portal_accounts WHERE id=?').bind(accountId).first<{id:string;role:string}>();
       if(!account||account.role==='admin')return portalJson({error:'Owner access cannot be reset here. Use the verified operational recovery process.'},403);
-      const token=randomToken(),id=crypto.randomUUID(),expires=Date.now()+172800000;
+      const pending=await env.DB!.prepare('SELECT account_id FROM portal_recovery_requests WHERE account_id=? AND resolved_at IS NULL').bind(accountId).first();
+      if(pending&&body.identityConfirmed!==true)return portalJson({error:'पंजीकृत संपर्क से स्वतंत्र रूप से पहचान की पुष्टि करें, फिर पुष्टि का विकल्प चुनें। / Verify identity through the stored contact before issuing a reset link.'},400);
+      const token=randomToken(),id=crypto.randomUUID(),expires=Date.now()+(pending?1800000:172800000);
       await env.DB!.batch([
         env.DB!.prepare('UPDATE portal_accounts SET status=\'invited\',password_hash=NULL,session_version=session_version+1 WHERE id=? AND role=\'member\'').bind(accountId),
         env.DB!.prepare('DELETE FROM portal_sessions WHERE account_id=?').bind(accountId),
         env.DB!.prepare('DELETE FROM portal_activations WHERE account_id=?').bind(accountId),
         env.DB!.prepare('INSERT INTO portal_activations (id,account_id,token_hash,expires_at) VALUES (?,?,?,?)').bind(id,accountId,await digest(token),expires),
+        env.DB!.prepare('DELETE FROM portal_credential_attempts WHERE key=?').bind(await digest('login:'+accountId)),
+        env.DB!.prepare('UPDATE portal_recovery_requests SET resolved_at=?,reviewed_by=? WHERE account_id=? AND resolved_at IS NULL').bind(Date.now(),user.id,accountId),
         env.DB!.prepare("INSERT INTO admin_actions (id,actor,target,action,reason,created_at) VALUES (?,?,?,'reset_account',?,?)").bind(crypto.randomUUID(),user.id,accountId,reason,Date.now()),
       ]);
       return portalJson({ok:true,activationUrl:`https://vedik-milan.softinator.org/activate#${token}`,expiresAt:expires});

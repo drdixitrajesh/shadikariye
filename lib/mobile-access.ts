@@ -3,8 +3,8 @@ import {normalizeMobile} from './account-contact';
 import type {PortalUser} from './portal-context';
 
 export function requiresAccountMobile(){return env.STANDALONE_MODE==='test-portal'&&env.REQUIRE_ACCOUNT_MOBILE!=='0';}
-const publicPages=new Set(['/login','/register','/activate','/account','/terms']);
-const accountApis=new Set(['/api/portal/me','/api/portal/login','/api/portal/register','/api/portal/activate','/api/portal/logout','/api/portal/contact','/api/portal/mfa']);
+const publicPages=new Set(['/login','/register','/forgot-password','/activate','/account','/terms']);
+const accountApis=new Set(['/api/portal/me','/api/portal/login','/api/portal/register','/api/portal/recover','/api/portal/activate','/api/portal/logout','/api/portal/contact','/api/portal/mfa']);
 
 export async function mobileAccessGate(request:Request,user:PortalUser|null){
   if(!requiresAccountMobile())return null;

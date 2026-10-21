@@ -56,9 +56,17 @@ test('real login form uses existing credentials and waits for registration avail
   assert.match(html,/Sign in with your mobile number and password/);
   assert.match(html,/id="portal-mobile"/);assert.match(html,/Use username/);
   assert.match(html,/Three failed attempts lock sign-in for 15 minutes/);
+  assert.match(html,/href="\/forgot-password"/);
   assert.match(html,/autoComplete="username"/);assert.match(html,/autoComplete="current-password"/);
   assert.doesNotMatch(html,/signin-with-chatgpt|new-password/);
   assert.doesNotMatch(html,/href="\/register"/);
+});
+
+test('forgot password explains manual verification and does not promise automatic delivery',()=>{
+  const RecoveryForm=loadComponent('app/portal/recovery.tsx').default;
+  const html=renderToStaticMarkup(React.createElement(RecoveryForm));
+  assert.match(html,/recovery-identifier/);assert.match(html,/No automatic SMS or email/);assert.match(html,/identity verification/);assert.match(html,/Maximum three attempts/);
+  assert.doesNotMatch(html,/type="password"/);assert.match(html,/href="\/login"/);
 });
 test('public registration form explains posting and requires password confirmation and terms',()=>{
   const {CredentialsForm}=loadComponent('app/portal/client.tsx');
