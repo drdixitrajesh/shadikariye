@@ -1,4 +1,5 @@
 # Vaidik Milan
+Account registration requires an Indian mobile number and accepts an optional account email. Mobile plus password and legacy username plus password are supported login methods. Account contacts are private to the account owner and MFA administrators, separate from profile contact email. They are self-reported and not OTP/email verified. Existing members can add or change contacts in My account after confirming their password.
 A completely free Brahmin matrimonial service for consenting adults and family managers. The requested reference is Shaadi.com; the original identity is Vaidik Milan.
 The primary activity is browsing profiles with separate community and gotra fields. Kanyakubj is a community; Shandilya is a gotra. Classification is self-reported, non-exhaustive and never inferred from surname.
 Profile publishing, shortlists, interests and messages are free. No premium plans, payments or paid contact gates.

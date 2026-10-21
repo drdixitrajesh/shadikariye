@@ -18,6 +18,8 @@ New posts and content/photo edits wait for admin approval. In `/admin`, select â
 
 ## Updates
 
+Account contacts (21 October 2026): registration requires a unique normalized +91 mobile and accepts optional email. Login defaults to mobile/password, with a username option for existing accounts. My account supports password-confirmed contact updates and clearing email. MFA administrators see both in member details; these private account fields are separate from profile contact email and never populate public listings. Phone/email remain explicitly unverified. Native startup applies the additive, restart-safe contact migration before serving requests; D1 uses migration 0006. Existing usernames, passwords, MFA secrets and profiles are preserved.
+
 Current deployment uses Dokploy ZIP uploads from branch `codex/dokploy-sudama`. It does not automatically deploy changes pushed to GitHub. Use `pnpm build:node`, `pnpm test:node`, `PORTAL_TEST_RUNTIME=node node tests/portal.mjs` and `pnpm exec tsc --noEmit` before uploading source. Include tracked source and intended untracked source only; exclude local databases, credentials, outputs and dependencies. Choose `Dockerfile.sudama` with context `.`. Existing databases start without a migration seed; bootstrap credentials were removed after import.
 
 `pnpm start:node` starts the native production server. Cleanup runs hourly. Container health checks call `/api/health`; successful migrated responses include `X-ManageLove-Origin: sudama-node`. Startup logs report only account/profile counts and integrity status.

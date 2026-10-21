@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { createDatabase } from './node-d1.mjs';
 import { importSeedIfMissing } from './node-seed.mjs';
+import { migrateAccountContacts } from './node-migrations.mjs';
 
 process.env.NODE_ENV = 'production';
 const databasePath = resolve(process.env.DATABASE_PATH ?? '/data/managelove.sqlite');
@@ -22,6 +23,7 @@ globalThis[Symbol.for('managelove.node.env')] = bindings;
 const { importServerEntryModule, startProdServer } = await import('vinext/server/prod-server');
 if (await bindings.DB.prepare('PRAGMA quick_check').first('quick_check') !== 'ok') throw new Error('Database integrity check failed.');
 await bindings.DB.prepare('SELECT id FROM portal_accounts LIMIT 1').first();
+await migrateAccountContacts(bindings.DB);
 console.log('Database ready:', JSON.stringify({ accounts: await bindings.DB.prepare('SELECT count(*) AS total FROM portal_accounts').first('total'), profiles: await bindings.DB.prepare('SELECT count(*) AS total FROM profiles').first('total'), integrity: 'ok' }));
 const { PortalPasswordService, cleanup } = await importServerEntryModule(resolve('dist/server/index.js'));
 const passwordService = new PortalPasswordService();

@@ -17,7 +17,7 @@ async function call(path,body,cookie,ip='registration-'+(++serial)){
 try{
   const db=await runtime.getD1Database();
   for(const file of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())for(const sql of readFileSync('drizzle/'+file,'utf8').replaceAll('--> statement-breakpoint','').split(';').filter(x=>x.trim()))await db.prepare(sql).run();
-  const signup={username:'new.member2026',password:'A strong member password 2026!',termsAccepted:true,turnstile:'register-ok',role:'admin',testAccount:true};
+  const signup={username:'new.member2026',mobile:'+919876543210',email:'account@example.invalid',password:'A strong member password 2026!',termsAccepted:true,turnstile:'register-ok',role:'admin',testAccount:true};
   assert.equal((await call('/api/portal/register',{...signup,termsAccepted:false})).status,400);
   assert.equal((await call('/api/portal/register',{...signup,password:'short'})).status,400);
   assert.equal((await call('/api/portal/register',{...signup,username:'invalid name'})).status,400);
@@ -26,10 +26,12 @@ try{
   assert.equal((await db.prepare("SELECT role,status FROM portal_accounts WHERE username='drdixitrajesh'").first()).status,'invited');
   const rejected=await runtime.dispatchFetch('https://vedik-milan.softinator.org/api/portal/register',{method:'POST',headers:{Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify(signup)});
   assert.equal(rejected.status,403);
+  assert.equal((await call('/api/portal/register',{...signup,mobile:''})).status,400);
+  assert.equal((await call('/api/portal/register',{...signup,email:'not-an-email'})).status,400);
   const registered=await call('/api/portal/register',signup);
   assert.equal(registered.status,201);assert.ok(registered.cookie?.startsWith('__Host-managelove='));
-  const account=await db.prepare('SELECT role,test_account,password_hash,status FROM portal_accounts WHERE username=?').bind(signup.username).first();
-  assert.equal(account.role,'member');assert.equal(account.test_account,0);assert.equal(account.status,'active');assert.ok(account.password_hash.startsWith('$scrypt$'));
+  const account=await db.prepare('SELECT mobile,contact_email,role,test_account,password_hash,status FROM portal_accounts WHERE username=?').bind(signup.username).first();
+  assert.equal(account.mobile,signup.mobile);assert.equal(account.contact_email,signup.email);assert.equal(account.role,'member');assert.equal(account.test_account,0);assert.equal(account.status,'active');assert.ok(account.password_hash.startsWith('$scrypt$'));
   assert.equal((await call('/api/portal/register',{...signup,password:'Different password 2026!'})).status,409);
   assert.equal((await db.prepare('SELECT password_hash FROM portal_accounts WHERE username=?').bind(signup.username).first()).password_hash,account.password_hash);
   const state=await call('/api/state',null,registered.cookie);
@@ -54,6 +56,20 @@ try{
   await db.prepare("UPDATE portal_accounts SET status='active' WHERE id=?").bind(admin.id).run();
   await db.prepare('INSERT INTO portal_sessions(token_hash,account_id,session_version,mfa_verified,created_at,expires_at) VALUES(?,?,0,1,?,?)').bind(createHash('sha256').update(adminToken).digest('hex'),admin.id,Date.now(),Date.now()+3600000).run();
   const adminCookie='__Host-managelove='+adminToken;
+  const memberId=await db.prepare('SELECT id FROM portal_accounts WHERE username=?').bind(signup.username).first('id');
+  const detail=await call('/api/admin/members?id='+memberId,null,adminCookie);
+  assert.equal(detail.data.member.mobile,signup.mobile);assert.equal(detail.data.member.email,signup.email);
+  assert.equal((await call('/api/admin/members?id='+memberId,null,registered.cookie)).status,403);
+  assert.equal((await call('/api/admin/members?id='+memberId)).status,401);
+  assert.equal((await call('/api/portal/login',{mobile:'98765 43210',password:signup.password,turnstile:'login-ok'})).status,200);
+  assert.equal((await call('/api/portal/login',{mobile:signup.mobile,password:'incorrect password here',turnstile:'login-ok'})).status,401);
+  assert.equal((await call('/api/portal/contact',{mobile:'9876543211',email:'',password:'incorrect password here'},registered.cookie)).status,403);
+  assert.equal((await call('/api/portal/contact',{mobile:'9876543211',email:'',password:signup.password},registered.cookie)).status,200);
+  assert.deepEqual((await call('/api/portal/contact',null,registered.cookie)).data,{mobile:'+919876543211',email:''});
+  assert.equal((await call('/api/portal/login',{mobile:signup.mobile,password:signup.password,turnstile:'login-ok'})).status,401);
+  assert.equal((await call('/api/portal/login',{mobile:'9876543211',password:signup.password,turnstile:'login-ok'})).status,200);
+  assert.equal((await call('/api/portal/register',{...signup,username:'duplicate.mobile',mobile:'9876543211'})).status,409);
+
   async function approve(profile){assert.equal((await call('/api/admin/profiles/review',{id:profile.id,reviewToken:profile.reviewToken,decision:'approved'},adminCookie)).status,200);}
   const optedIn=await call('/api/profile',{...profile,publicListing:true,email:'private-contact@example.invalid'},registered.cookie);
   assert.equal(optedIn.status,200);assert.equal(optedIn.data.profile.publicListing,true);assert.equal(optedIn.data.profile.expiresAt,published.data.profile.expiresAt);
@@ -63,7 +79,7 @@ try{
   await approve(optedIn.data.profile);
   const publicState=await call('/api/state'),publicProfile=publicState.data.profiles.find(p=>p.id===published.data.profile.id);
   assert.ok(publicProfile);assert.equal(publicProfile.name,'New Member');assert.equal(publicProfile.photoKeys[0],photoKey);assert.equal('email' in publicProfile,false);
-  for(const privateValue of ['private-contact@example.invalid','1996-04-15','+919999999991','Reference One'])assert.equal(JSON.stringify(publicState.data).includes(privateValue),false);
+  for(const privateValue of ['+919876543211','account@example.invalid','private-contact@example.invalid','1996-04-15','+919999999991','Reference One'])assert.equal(JSON.stringify(publicState.data).includes(privateValue),false);
   const publicPhoto=await anonymousPhoto();assert.equal(publicPhoto.status,200);assert.equal(publicPhoto.headers.get('content-type'),'image/png');assert.match(publicPhoto.headers.get('cache-control'),/no-store/);
   const regularEdit=await call('/api/profile',{...profile,city:'Bhopal'},registered.cookie);assert.equal(regularEdit.data.profile.publicListing,true);
   assert.equal(regularEdit.data.profile.approvalStatus,'pending');await approve(regularEdit.data.profile);
@@ -73,9 +89,9 @@ try{
   assert.equal((await anonymousPhoto()).status,401);assert.equal((await call('/api/state')).data.profiles.some(p=>p.id===published.data.profile.id),false);
   assert.equal((await call('/api/portal/logout',{},registered.cookie)).status,200);
   assert.equal((await call('/api/portal/login',{username:signup.username,password:signup.password,turnstile:'login-ok'})).status,200);
-  for(let n=0;n<5;n++)assert.equal((await call('/api/portal/register',{...signup,username:'limited'+n},null,'same-registration-ip')).status,201);
+  for(let n=0;n<5;n++)assert.equal((await call('/api/portal/register',{...signup,username:'limited'+n,mobile:'+91987654322'+n},null,'same-registration-ip')).status,201);
   assert.equal((await call('/api/portal/register',{...signup,username:'limited6'},null,'same-registration-ip')).status,429);
-  const racing=await Promise.all([call('/api/portal/register',{...signup,username:'concurrent.member'}),call('/api/portal/register',{...signup,username:'concurrent.member'})]);
+  const racing=await Promise.all([call('/api/portal/register',{...signup,username:'concurrent.member',mobile:'+919876543299'}),call('/api/portal/register',{...signup,username:'concurrent.member',mobile:'+919876543299'})]);
   assert.deepEqual(racing.map(r=>r.status).sort(),[201,409]);
   globalThis[Symbol.for('managelove.node.env')].PUBLIC_REGISTRATION='0';
   assert.equal((await call('/api/portal/register',{...signup,username:'closed.member'})).status,404);

@@ -1,5 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {type PortalUser,portalUser} from './portal-context';
+import {accountContact,normalizeMobile} from './account-contact';
 const encoder=new TextEncoder();
 export const SESSION_COOKIE='__Host-managelove';
 export function isPortal(){return env.STANDALONE_MODE==='test-portal';}
@@ -79,29 +80,31 @@ export async function handlePortal(request:Request){
       if(!publicRegistration())return portalJson({error:'Registration unavailable'},404);
       const body=await readBody(request);
       const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
+      let contact;try{contact=accountContact(body);}catch(error){return portalJson({error:(error as Error).message},400);}
       if(!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username))return portalJson({error:'3–40 अक्षरों का यूज़रनेम चुनें: English letters, numbers, dot, underscore or hyphen.'},400);
       if(body.termsAccepted!==true||!validPassword(body.password))return portalJson({error:'नियम स्वीकार करें और 16–128 अक्षरों का पासवर्ड चुनें। / Accept the terms and use a password of 16–128 characters.'},400);
       if(!await throttle(request,'register',username,{ip:5,subject:3,global:80}))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
       if(!await turnstile(body.turnstile,'register',new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       const id=crypto.randomUUID();
       const {hash}=await passwordService(id,body.password.normalize('NFKC'));
-      const created=await env.DB!.prepare("INSERT INTO portal_accounts (id,username,role,password_hash,status,session_version,test_account,created_at) VALUES (?,?,'member',?,'active',0,0,?) ON CONFLICT(username) DO NOTHING").bind(id,username,hash,Date.now()).run();
-      if(!created.meta.changes)return portalJson({error:'यह यूज़रनेम पहले से है। दूसरा चुनें या लॉग इन करें। / Username already exists. Choose another or sign in.'},409);
+      const created=await env.DB!.prepare("INSERT INTO portal_accounts (id,username,role,password_hash,status,session_version,test_account,created_at,mobile,contact_email) VALUES (?,?,'member',?,'active',0,0,?,?,?) ON CONFLICT DO NOTHING").bind(id,username,hash,Date.now(),contact.mobile,contact.email).run();
+      if(!created.meta.changes)return portalJson({error:'यह यूज़रनेम या मोबाइल पहले से जुड़ा है। लॉग इन करें या अलग जानकारी दें। / Username or mobile already registered.'},409);
       return portalJson({ok:true},201,await makeSession({id,role:'member',session_version:0}));
     }
     if(path==='/api/portal/logout'&&request.method==='POST'){if(user)await env.DB!.prepare('DELETE FROM portal_sessions WHERE token_hash=?').bind(user.sessionHash).run();return portalJson({ok:true},200,sessionCookie('',0));}
     if((path==='/api/portal/login'||path==='/api/portal/activate')&&request.method==='POST'){
       const body=await readBody(request),action=path.endsWith('login')?'login':'activate';
       const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';
+      const mobile=normalizeMobile(body.mobile);
       const token=typeof body.token==='string'?body.token:'';
-      if(!await throttle(request,action,action==='login'?(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown'):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
+      if(!await throttle(request,action,action==='login'?(mobile||(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown')):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
       if(!await turnstile(body.turnstile,action,new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
       const password=body.password.normalize('NFKC');
       if(action==='login'){
-        const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE username=?').bind(username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
+        const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE '+(body.mobile!==undefined?'mobile=?':'username=?')).bind(body.mobile!==undefined?(mobile||'invalid-mobile'):username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
         const check=await passwordService(account?.id??'unknown',password,account?.password_hash??'invalid');
-        if(!account||account.status!=='active'||!check.ok)return portalJson({error:'Invalid username or password'},401);
+        if(!account||account.status!=='active'||!check.ok)return portalJson({error:'मोबाइल / यूज़रनेम या पासवर्ड गलत है। / Invalid mobile, username or password.'},401);
         return portalJson({ok:true,mfaRequired:account.role==='admin'},200,await makeSession(account));
       }
       if(!/^[a-f0-9]{64}$/.test(token))return portalJson({error:'Activation link is invalid or expired'},400);
@@ -119,6 +122,17 @@ export async function handlePortal(request:Request){
       return portalJson({ok:true,mfaRequired:activation.role==='admin'},200,await makeSession({...activation,session_version:activation.session_version+1}));
     }
     if(!user)return portalJson({error:'Sign in required'},401);
+    if(path==='/api/portal/contact'){
+      if(user.role==='admin'&&!user.mfa)return portalJson({error:'Administrator verification required'},403);
+      if(request.method==='GET')return portalJson(await env.DB!.prepare("SELECT mobile,contact_email AS email FROM portal_accounts WHERE id=?").bind(user.id).first());
+      const body=await readBody(request);
+      let contact;try{contact=accountContact(body);}catch(error){return portalJson({error:(error as Error).message},400);}
+      if(!await throttle(request,'contact',user.id))return portalJson({error:'बहुत अधिक प्रयास। 15 मिनट बाद प्रयास करें।'},429);
+      const account=await env.DB!.prepare('SELECT password_hash FROM portal_accounts WHERE id=? AND status=\'active\'').bind(user.id).first<{password_hash:string}>();
+      if(!validPassword(body.password)||!account||!(await passwordService(user.id,body.password.normalize('NFKC'),account.password_hash)).ok)return portalJson({error:'वर्तमान पासवर्ड सही नहीं है। / Incorrect current password.'},403);
+      try{await env.DB!.prepare('UPDATE portal_accounts SET mobile=?,contact_email=? WHERE id=?').bind(contact.mobile,contact.email,user.id).run();}catch(error){if(String(error).includes('UNIQUE constraint failed: portal_accounts.mobile'))return portalJson({error:'यह मोबाइल दूसरे खाते से जुड़ा है। / Mobile already registered.'},409);throw error;}
+      return portalJson({ok:true});
+    }
     if(path==='/api/portal/mfa'){
       if(user.role!=='admin')return portalJson({error:'Administrator required'},403);
       const account=await env.DB!.prepare('SELECT mfa_secret,mfa_enrolled,mfa_counter FROM portal_accounts WHERE id=?').bind(user.id).first<{mfa_secret:string|null;mfa_enrolled:number;mfa_counter:number}>();

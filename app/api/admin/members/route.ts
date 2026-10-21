@@ -4,9 +4,9 @@ import {ageFromDate} from '@/lib/security';
 import {isPortal} from '@/lib/portal-auth';
 import {z} from 'zod';
 export const dynamic='force-dynamic';
-type MemberRow={id:string;username:string;status:string;created_at:number;test_account:number;profile_id:string|null;data:string|null;photo_key:string|null;published_at:number|null;expires_at:number|null;updated_at:number|null};
-function member(row:MemberRow){return {id:row.id,username:row.username,status:row.status,createdAt:row.created_at,testAccount:Boolean(row.test_account),profile:row.profile_id&&row.data?{id:row.profile_id,name:String(JSON.parse(row.data).name),city:String(JSON.parse(row.data).city),publicListing:JSON.parse(row.data).publicListing===true,approvalStatus:fromRow({id:row.profile_id,data:row.data,photo_key:row.photo_key}).approvalStatus,publishedAt:row.published_at}:null};}
-const selection='SELECT a.id,a.username,a.status,a.created_at,a.test_account,p.id AS profile_id,p.data,p.photo_key,p.published_at,p.expires_at,p.updated_at FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id';
+type MemberRow={id:string;username:string;mobile:string|null;contact_email:string;status:string;created_at:number;test_account:number;profile_id:string|null;data:string|null;photo_key:string|null;published_at:number|null;expires_at:number|null;updated_at:number|null};
+function member(row:MemberRow){return {id:row.id,username:row.username,mobile:row.mobile,email:row.contact_email,status:row.status,createdAt:row.created_at,testAccount:Boolean(row.test_account),profile:row.profile_id&&row.data?{id:row.profile_id,name:String(JSON.parse(row.data).name),city:String(JSON.parse(row.data).city),publicListing:JSON.parse(row.data).publicListing===true,approvalStatus:fromRow({id:row.profile_id,data:row.data,photo_key:row.photo_key}).approvalStatus,publishedAt:row.published_at}:null};}
+const selection='SELECT a.id,a.username,a.mobile,a.contact_email,a.status,a.created_at,a.test_account,p.id AS profile_id,p.data,p.photo_key,p.published_at,p.expires_at,p.updated_at FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id';
 export async function GET(request:Request){
   if(!await identity())return json({error:'Sign in required'},401);
   if(!await adminIdentity())return json({error:'Administrator access required'},403);
