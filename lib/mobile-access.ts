@@ -17,7 +17,7 @@ export async function mobileAccessGate(request:Request,user:PortalUser|null){
   const url=new URL(request.url),path=url.pathname;
   // Public reads use their own approved, consented profile projection.
   // Every member mutation, private API and administration still uses this gate.
-  const publicRead=(request.method==='GET'||request.method==='HEAD')&&(path==='/api/state'||/^\/api\/photo\/[0-9a-f-]{36}$/.test(path));
+  const publicRead=(request.method==='GET'||request.method==='HEAD')&&(path==='/api/state'||/^\/api\/photo\/[0-9a-f-]{36}$/.test(path)||/^\/locations\/(?:[A-Z]{2}|countries|source)\.json$/.test(path));
   if(publicRead)return null;
   if(publicPages.has(path)||accountApis.has(path)||path.startsWith('/_next/static/')||path==='/favicon.ico')return null;
   if(await accountHasMobile(user))return null;

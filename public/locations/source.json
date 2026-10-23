@@ -1,0 +1,25 @@
+{
+  "source": "GeoNames",
+  "url": "https://www.geonames.org/",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "retrievedAt": "2026-10-23T08:55:17.027Z",
+  "countries": 252,
+  "states": 3865,
+  "districts": 47633,
+  "unmatchedAdmin2": 0,
+  "files": [
+    {
+      "url": "https://download.geonames.org/export/dump/countryInfo.txt",
+      "sha256": "c55f638cfaafb4fe45a9aa15120a0f1f78e8a34a8e1847d7b9320cf740fbc9ab"
+    },
+    {
+      "url": "https://download.geonames.org/export/dump/admin1CodesASCII.txt",
+      "sha256": "55153d45d5347e658eed69c1064563e929c6e199d51ed0649a61d2e629711d44"
+    },
+    {
+      "url": "https://download.geonames.org/export/dump/admin2Codes.txt",
+      "sha256": "c412444c5bedaa0372a5227eddd096daa72467de9273bf1d1be3cdfc53e43a3d"
+    }
+  ]
+}

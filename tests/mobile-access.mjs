@@ -22,6 +22,11 @@ try{
   const image=await sharp({create:{width:600,height:800,channels:3,background:'#cab8a8'}}).png().toBuffer();
   await db.prepare('INSERT INTO portal_photos(key,body,mime,size) VALUES(?,?,?,?)').bind(photoKey,image,'image/png',image.length).run();
   for(const path of ['/','/?community=Gaur','/portraits.png','/login','/register','/terms','/account','/api/portal/me','/api/health'])eq((await call(path)).status,200);
+  for(const path of ['/locations/IN.json','/locations/US.json','/locations/countries.json','/locations/source.json']){
+    for(const method of ['GET','HEAD']){const response=await call(path,{method});eq(response.status!==303,true);eq(response.headers.get('location'),null);}
+  }
+  eq((await call('/locations/private.json')).status,303);
+  eq((await call('/locations/IN.json',{method:'POST',body:{}})).status,303);
   const rsc=await call('/',{headers:{RSC:'1','Next-Router-Prefetch':'1'}});eq(rsc.status!==303,true);eq(rsc.headers.get('location')==='/login',false);
   const publicState=await (await call('/api/state')).json();
   eq(publicState.profiles.length,1);eq(publicState.profiles[0].id,target.id);

@@ -19,8 +19,9 @@ export function canonicalGotra(value: string) {
   return aliases[clean.toLowerCase()] ?? GOTRAS.find(g=>g.toLowerCase()===clean.toLowerCase()) ?? clean;
 }
 export type Reference={name:string;relationship:string;phone:string;consent:boolean};
-export type Profile = {approvalStatus?:'pending'|'approved'|'rejected';reviewToken?:string;reviewReason?:string;publicListing?:boolean;publishedAt?:number;expiresAt?:number;id:string;name:string;email?:string;age:number;gender:string;community:string;gotra:string;city:string;education:string;profession:string;height:number;maritalStatus:string;about:string;managedBy:string;language:string;demo:boolean;testAccount?:boolean;portrait:number|null;photoKey:string|null;photoKeys?:string[];photoSlots?:{slot:number;key:string}[];referenceCount?:number;phoneVerified?:boolean;};
-export type Filters = {gender?:string;ageMin?:number;ageMax?:number;community?:string;gotra?:string;city?:string;excludeGotra?:string;query?:string;maritalStatus?:string;};
+export type Profile = {approvalStatus?:'pending'|'approved'|'rejected';reviewToken?:string;reviewReason?:string;publicListing?:boolean;publishedAt?:number;expiresAt?:number;id:string;name:string;email?:string;age:number;gender:string;community:string;gotra:string;city:string;country?:string;state?:string;district?:string;education:string;profession:string;height:number;maritalStatus:string;about:string;managedBy:string;language:string;demo:boolean;testAccount?:boolean;portrait:number|null;photoKey:string|null;photoKeys?:string[];photoSlots?:{slot:number;key:string}[];referenceCount?:number;phoneVerified?:boolean;};
+export type Filters = {gender?:string;ageMin?:number;ageMax?:number;community?:string;gotra?:string;city?:string;country?:string;state?:string;district?:string;education?:string;profession?:string;excludeGotra?:string;query?:string;maritalStatus?:string;};
+export function formatLocation(profile:Pick<Profile,'city'|'district'|'state'|'country'>){return [profile.city,profile.district,profile.state,profile.country].filter((value,index,items)=>value&&items.indexOf(value)===index).join(', ');}
 export function matchesFilters(p:Profile,f:Filters) {
   if (f.gender && f.gender !== 'all' && p.gender!==f.gender) return false;
   if (f.ageMin && p.age<f.ageMin || f.ageMax && p.age>f.ageMax) return false;
@@ -28,12 +29,13 @@ export function matchesFilters(p:Profile,f:Filters) {
   if (f.gotra && f.gotra!=='all' && canonicalGotra(p.gotra)!==canonicalGotra(f.gotra)) return false;
   if (f.excludeGotra && canonicalGotra(f.excludeGotra)!=='Unknown' && canonicalGotra(p.gotra)===canonicalGotra(f.excludeGotra)) return false;
   if (f.city && !p.city.toLowerCase().includes(f.city.toLowerCase().trim())) return false;
+  for(const key of ['country','state','district','education','profession'] as const){const wanted=f[key];if(wanted&&wanted!=='all'&&(p[key]??'').toLocaleLowerCase()!==wanted.toLocaleLowerCase())return false;}
   if (f.maritalStatus && f.maritalStatus!=='all' && p.maritalStatus!==f.maritalStatus) return false;
-  if (f.query && ![p.name,p.city,p.education,p.profession,p.community,p.gotra,HINDI[p.gotra],HINDI[p.community]].filter(Boolean).join(' ').toLowerCase().includes(f.query.toLowerCase().trim())) return false;
+  if (f.query && ![p.name,p.city,p.country,p.state,p.district,p.education,p.profession,p.community,p.gotra,HINDI[p.gotra],HINDI[p.community]].filter(Boolean).join(' ').toLowerCase().includes(f.query.toLowerCase().trim())) return false;
   return true;
 }
 const text=(min:number,max:number)=>z.string().trim().min(min).max(max);
-export const profileSchema=z.object({name:text(2,80),email:z.string().trim().max(254).pipe(z.union([z.string().email(),z.literal('')])).optional().default(''),age:z.number().int().min(21).max(70),gender:z.enum(['female','male']),community:text(2,60),gotra:text(2,60).transform(canonicalGotra),city:text(2,80),education:text(2,100),profession:text(2,100),height:z.number().int().min(120).max(230),maritalStatus:z.enum(['Never married','Divorced','Widowed']),about:text(20,1500),managedBy:z.enum(['Self','Parent','Sibling']),language:text(2,60),consent:z.literal(true)});
+export const profileSchema=z.object({name:text(2,80),email:z.string().trim().max(254).pipe(z.union([z.string().email(),z.literal('')])).optional().default(''),age:z.number().int().min(21).max(70),gender:z.enum(['female','male']),community:text(2,60),gotra:text(2,60).transform(canonicalGotra),city:text(2,80),country:z.string().trim().max(160).optional().default(''),state:z.string().trim().max(160).optional().default(''),district:z.string().trim().max(160).optional().default(''),education:text(2,100),profession:text(2,100),height:z.number().int().min(120).max(230),maritalStatus:z.enum(['Never married','Divorced','Widowed']),about:text(20,1500),managedBy:z.enum(['Self','Parent','Sibling']),language:text(2,60),consent:z.literal(true)});
 export function validateProfile(value:unknown){return profileSchema.safeParse(value);}
 export const DEMO_PROFILES:Profile[]=[
   {id:'demo-ananya',name:'Ananya Sharma',age:27,gender:'female',community:'Kanyakubj',gotra:'Shandilya',city:'Lucknow',education:'MBA, IIM Indore',profession:'Product Designer',height:165,maritalStatus:'Never married',about:'I find joy in small things: a good book, family dinners and exploring a new city. I value kindness, honest conversations and a partner who supports us both growing together.',managedBy:'Self',language:'Hindi',demo:true,portrait:0,photoKey:null},

@@ -13,9 +13,8 @@ export default function PhotoCopyGuard(){
   return <dialog ref={screen} className="privacy-screen" aria-labelledby="privacy-screen-title" aria-describedby="privacy-screen-description">
     <div className="privacy-screen-message">
       <h2 id="privacy-screen-title">गोपनीयता के लिए स्क्रीन छिपाई गई है</h2>
-      <p id="privacy-screen-description">वेबसाइट से ध्यान हटने या कुछ स्क्रीनशॉट शॉर्टकट दबाने पर सामग्री छिप जाती है।</p>
+      <p id="privacy-screen-description">कुछ स्क्रीनशॉट शॉर्टकट दबाने पर सामग्री छिप जाती है।</p>
       <button type="button" data-privacy-resume>स्क्रीन फिर खोलें / Show screen</button>
-      <p className="privacy-screen-limit">यह सुविधा हर स्क्रीनशॉट या स्क्रीन रिकॉर्डिंग को नहीं रोक सकती।<br/>This privacy screen cannot prevent every screenshot or recording.</p>
     </div>
   </dialog>;
 }

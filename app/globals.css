@@ -34,6 +34,15 @@ html[lang=hi] .brand strong{font-family:'Noto Serif Devanagari',serif;font-size:
 .privacy-assurance>svg{margin-top:3px;flex-shrink:0}
 .privacy-assurance>div{min-width:0;max-width:1100px}
 .privacy-assurance h2{margin:0 0 6px;font-size:22px;line-height:1.6;font-weight:600}
+.location-fields{grid-column:1/-1;min-width:0;border:0;padding:0;margin:0 0 20px}
+.location-fields legend{font-size:17px;font-weight:600;margin-bottom:14px}
+.location-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.location-field{min-width:0}
+.location-field select{width:100%;min-width:0;min-height:46px;padding:10px 12px;border:1px solid var(--input);border-radius:7px;background:#fff;color:var(--foreground);font:inherit;font-size:16px;text-overflow:ellipsis}
+.location-field select:focus-visible{outline:3px solid #9b6e80;outline-offset:3px}
+.location-field select:disabled{color:#736871;background:#f3eff1;cursor:not-allowed}
+.location-source{font-size:14px;color:#625160;line-height:1.7}
+@media(max-width:700px){.location-grid{grid-template-columns:minmax(0,1fr);gap:0}}
 .privacy-assurance strong{display:block;font-size:17px;font-weight:600;line-height:1.7}
 .privacy-assurance p{margin-top:6px;font-size:16px;line-height:1.75;overflow-wrap:anywhere}
 .privacy-assurance .privacy-assurance-limit{font-size:14px;color:#625160}

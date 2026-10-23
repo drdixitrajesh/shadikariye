@@ -1,0 +1,13 @@
+# Location dropdowns
+
+The profile editor stores country, state/province and district/county names alongside the existing city in the profile JSON. No SQL migration is required. Old city-only records remain blank for the new fields; neither country nor state is guessed from a city. Location edits follow the existing approval workflow and do not extend publication expiry.
+
+The bundled snapshot uses [GeoNames](https://www.geonames.org/) data under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). It contains 252 countries/territories, 3,865 first-level administrative areas and 47,633 second-level areas, including 763 Indian district records. These are GeoNames administrative levels; the local names and levels vary across countries. The data is provided as-is and is not guaranteed complete or current. Other/not listed allows a manually entered subdivision; absent administrative levels can be left not applicable. No external location service or API key is used at runtime.
+
+`public/locations/countries.json` supplies country choices. Each country file contains its own states and districts and loads on demand from the same origin. `data/location-catalog.json` validates parent/child choices on the server; known mismatched states or districts are rejected. Custom missing-list names remain member-supplied. Visible GeoNames attribution is included next to the controls. `public/locations/source.json` records retrieval time, source URLs and SHA-256 checksums. No profile or account data is sent to GeoNames.
+
+Refresh deliberately with `node scripts/update-locations.mjs`, review the resulting counts/diff and run the tests before deployment. For a reproducible refresh from downloaded files, set `LOCATION_SOURCE_DIR` to a folder containing `countryInfo.txt`, `admin1CodesASCII.txt` and `admin2Codes.txt`.
+
+Country/state/district filters combine with city, education and profession dropdowns. The latter choices come only from the viewer's existing feed. The existing twenty-profile daily allowance and public-visibility rules are unchanged.
+
+Verification: `pnpm exec tsx --test tests/locations.test.ts`, `node tests/locations.mjs`, production Node build and TypeScript. For actual desktop/mobile form save/reload and filter interactions, also set `LOCATION_BROWSER=1`, optional `PLAYWRIGHT_MODULE` to a module URL and optional `PLAYWRIGHT_CHANNEL` (for example `msedge`), then run `node tests/locations.mjs`. The test uses only an isolated in-memory database and mocked browser requests. The privacy suite separately checks that screenshot shortcuts conceal content while window/tab focus changes do not.

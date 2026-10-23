@@ -1,6 +1,7 @@
 import {isPortal} from '@/lib/portal-auth';
 import {portalUser} from '@/lib/portal-context';
 import {sixMonthsAfter} from '@/lib/profile-expiry';
+import {validLocation} from '@/lib/location-validation';
 import {validateProfile} from '@/lib/matrimony';
 import {z} from 'zod';
 import {deleteStoredProfile} from '@/lib/profile-deletion';
@@ -19,6 +20,7 @@ export async function POST(request:Request){
     if(p.references[0].phone===p.references[1].phone)return json({error:'दो अलग रेफरेंस दें। / Provide two different references.'},400);
     const parsed=validateProfile({...body,age:ageFromDate(p.birthDate)});
     if(!parsed.success)return json({error:'प्रोफ़ाइल की जानकारी और प्रकाशन की सहमति जाँचें। / Check profile details and publication consent.'},400);
+    if(!validLocation(parsed.data))return json({error:'देश, राज्य और ज़िले का चयन जाँचें। / Check the selected country, state and district.'},400);
     const gate=await requireVerified(owner);if(gate)return gate;
     const old=await db().prepare('SELECT id,data,photo_key,published_at,expires_at FROM profiles WHERE owner=?').bind(owner).first<{id:string;data:string;photo_key:string|null;published_at:number;expires_at:number}>();
     if(body.publicationToken!==undefined&&(!old||body.publicationToken!==old.published_at))return json({error:'पोस्ट हट चुकी है या बदल गई है। पेज रिफ्रेश करें। / Publication no longer exists. Refresh before creating a new post.'},409);

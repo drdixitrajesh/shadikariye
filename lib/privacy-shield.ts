@@ -22,13 +22,12 @@ export function installPrivacyShield(screen:HTMLDialogElement,pathname:string){
     screen.close();
     delete root.dataset.privacyShield;
   };
-  const onVisibility=()=>{if(document.visibilityState==='hidden')conceal();};
   const onKey=(event:KeyboardEvent)=>{
     const key=event.key.toLowerCase();
     const capture=key==='printscreen'||event.code==='PrintScreen'||
       (event.metaKey&&event.shiftKey&&['s','3','4','5'].includes(key))||
       (event.ctrlKey&&event.shiftKey&&key==='s');
-    if(enabled&&(capture||((event.ctrlKey||event.metaKey)&&key==='p'))){event.preventDefault();conceal();}
+    if(enabled&&capture){event.preventDefault();conceal();}
   };
   const onCancel=(event:Event)=>event.preventDefault();
   const button=screen.querySelector<HTMLButtonElement>('[data-privacy-resume]');
@@ -40,13 +39,8 @@ export function installPrivacyShield(screen:HTMLDialogElement,pathname:string){
   document.addEventListener('cut',preventClipboardCopy);
   document.addEventListener('keydown',onKey,true);
   document.addEventListener('keyup',onKey,true);
-  document.addEventListener('visibilitychange',onVisibility);
-  window.addEventListener('blur',conceal);
-  window.addEventListener('pagehide',conceal);
-  window.addEventListener('beforeprint',conceal);
   screen.addEventListener('cancel',onCancel);
   button?.addEventListener('click',resume);
-  if(document.visibilityState==='hidden')conceal();
   return ()=>{
     document.removeEventListener('contextmenu',preventPhotoCopy);
     document.removeEventListener('dragstart',preventPhotoCopy);
@@ -55,10 +49,6 @@ export function installPrivacyShield(screen:HTMLDialogElement,pathname:string){
     document.removeEventListener('cut',preventClipboardCopy);
     document.removeEventListener('keydown',onKey,true);
     document.removeEventListener('keyup',onKey,true);
-    document.removeEventListener('visibilitychange',onVisibility);
-    window.removeEventListener('blur',conceal);
-    window.removeEventListener('pagehide',conceal);
-    window.removeEventListener('beforeprint',conceal);
     screen.removeEventListener('cancel',onCancel);
     button?.removeEventListener('click',resume);
     screen.close();

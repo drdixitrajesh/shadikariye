@@ -26,7 +26,7 @@ try{
       return {photo:fire(document.querySelector('h1'),'copy'),input:fire(document.querySelector('input'),'copy'),drag:fire(document.querySelector('h1'),'dragstart')};
     });
     check(copy.photo&&copy.drag&&!copy.input,'copy blocked on profiles and allowed in forms');
-    for(const shortcut of [ {key:'PrintScreen'}, {key:'s',metaKey:true,shiftKey:true}, {key:'4',metaKey:true,shiftKey:true}, {key:'s',ctrlKey:true,shiftKey:true}, {key:'p',ctrlKey:true} ]){
+    for(const shortcut of [ {key:'PrintScreen'}, {key:'s',metaKey:true,shiftKey:true}, {key:'4',metaKey:true,shiftKey:true}, {key:'s',ctrlKey:true,shiftKey:true} ]){
       await page.evaluate(shortcut=>document.dispatchEvent(new KeyboardEvent('keydown',{...shortcut,bubbles:true,cancelable:true})),shortcut);
       check(await page.locator('dialog').isVisible(),'shortcut opens curtain');
       check(await page.locator('main').evaluate(el=>getComputedStyle(el).visibility==='hidden'),'sensitive content hidden');
@@ -35,7 +35,7 @@ try{
       await page.locator('[data-privacy-resume]').click();
       check(await page.locator('main').isVisible(),'explicit resume restores content');
     }
-    await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+    await page.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'PrintScreen',bubbles:true})));
     await page.screenshot({path:`outputs/privacy-shield/curtain-${viewport.width}.png`});
     check(await page.locator('dialog').evaluate(el=>getComputedStyle(el).backgroundColor==='rgb(0, 0, 0)'),'curtain is black');
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
@@ -46,19 +46,20 @@ try{
       Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'});
       document.dispatchEvent(new Event('visibilitychange'));
     });
-    check(await page.locator('dialog').isVisible(),'hidden tab conceals content');
+    check(!await page.locator('dialog').isVisible(),'hidden tab does not conceal content');
     await page.evaluate(()=>{
       Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
       document.dispatchEvent(new Event('visibilitychange'));
     });
-    check(await page.locator('dialog').isVisible(),'visible tab still requires explicit resume');
-    await page.locator('[data-privacy-resume]').click();
+    check(!await page.locator('dialog').isVisible(),'returning to a visible tab leaves content open');
+    await page.evaluate(()=>{window.dispatchEvent(new Event('blur'));window.dispatchEvent(new Event('pagehide'));document.dispatchEvent(new KeyboardEvent('keydown',{key:'p',ctrlKey:true}));});
+    check(!await page.locator('dialog').isVisible(),'focus loss, pagehide and print shortcuts do not open the curtain');
     await page.emulateMedia({media:'print'});
     check(await page.locator('main').evaluate(el=>getComputedStyle(el).display==='none'),'print hides photo and data');
     await page.emulateMedia({media:'screen'});
-    await page.evaluate(()=>{window.cleanup();window.cleanup=installPrivacyShield(document.querySelector('dialog'),'/login');window.dispatchEvent(new Event('blur'));});
+    await page.evaluate(()=>{window.cleanup();window.cleanup=installPrivacyShield(document.querySelector('dialog'),'/login');document.dispatchEvent(new KeyboardEvent('keydown',{key:'PrintScreen',bubbles:true}));});
     check(!await page.locator('dialog').isVisible(),'login remains usable on focus loss');
-    await page.evaluate(()=>{window.cleanup();window.dispatchEvent(new Event('blur'));});
+    await page.evaluate(()=>{window.cleanup();document.dispatchEvent(new KeyboardEvent('keydown',{key:'PrintScreen',bubbles:true}));});
     check(!await page.locator('dialog').isVisible(),'cleanup removes listeners');
     await page.close();
   }
