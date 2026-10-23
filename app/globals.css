@@ -249,5 +249,3 @@ html[data-privacy-shield="hidden"] body>*:not(.privacy-screen){visibility:hidden
 }
 
 .community-browse{align-items:end;overflow:visible;flex-wrap:wrap}
-.community-browse .location-field{width:min(360px,100%);margin:0}
-@media(max-width:760px){.community-browse .location-field{width:100%}.community-browse .location-field>label{font-size:13px}}
