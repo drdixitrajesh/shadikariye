@@ -1,12 +1,21 @@
 'use client';
-import {useEffect} from 'react';
+import {useEffect,useRef} from 'react';
+import {usePathname} from 'next/navigation';
+import {installPrivacyShield} from '../lib/privacy-shield';
 
 export default function PhotoCopyGuard(){
+  const screen=useRef<HTMLDialogElement>(null);
+  const pathname=usePathname();
   useEffect(()=>{
-    const photo=(target:EventTarget|null)=>target instanceof Element&&!target.closest('input,textarea,[contenteditable="true"]')&&Boolean(target.closest('img,.portrait,.photo-wrap,.member-photo-gallery,.detail-photos,.profile-card,.detail-sheet,.member-preview-section'));
-    const preventPhotoCopy=(event:Event)=>{if(photo(event.target))event.preventDefault();};
-    document.addEventListener('contextmenu',preventPhotoCopy);document.addEventListener('dragstart',preventPhotoCopy);document.addEventListener('selectstart',preventPhotoCopy);
-    return ()=>{document.removeEventListener('contextmenu',preventPhotoCopy);document.removeEventListener('dragstart',preventPhotoCopy);document.removeEventListener('selectstart',preventPhotoCopy);};
-  },[]);
-  return null;
+    if(!screen.current)return;
+    return installPrivacyShield(screen.current,pathname);
+  },[pathname]);
+  return <dialog ref={screen} className="privacy-screen" aria-labelledby="privacy-screen-title" aria-describedby="privacy-screen-description">
+    <div className="privacy-screen-message">
+      <h2 id="privacy-screen-title">गोपनीयता के लिए स्क्रीन छिपाई गई है</h2>
+      <p id="privacy-screen-description">वेबसाइट से ध्यान हटने या कुछ स्क्रीनशॉट शॉर्टकट दबाने पर सामग्री छिप जाती है।</p>
+      <button type="button" data-privacy-resume>स्क्रीन फिर खोलें / Show screen</button>
+      <p className="privacy-screen-limit">यह सुविधा हर स्क्रीनशॉट या स्क्रीन रिकॉर्डिंग को नहीं रोक सकती।<br/>This privacy screen cannot prevent every screenshot or recording.</p>
+    </div>
+  </dialog>;
 }
