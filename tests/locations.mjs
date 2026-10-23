@@ -59,7 +59,7 @@ try{
       await filters.getByRole('combobox',{name:'राज्य / प्रांत',exact:true}).selectOption('Madhya Pradesh');
       await filters.getByRole('combobox',{name:'ज़िला / काउंटी',exact:true}).selectOption('Indore');
       eq(await filters.getByRole('combobox',{name:'नाम',exact:true}).count(),0);
-      await filters.getByRole('combobox',{name:'शहर',exact:true}).selectOption('Indore');
+      eq(await filters.getByRole('combobox',{name:'शहर',exact:true}).count(),0);
       await filters.getByRole('combobox',{name:'शिक्षा',exact:true}).selectOption('Graduate');
       await filters.getByRole('combobox',{name:'पेशा',exact:true}).selectOption('Teacher');
       eq(await page.locator('.profile-card').count(),1);

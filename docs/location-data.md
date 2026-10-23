@@ -8,6 +8,6 @@ The bundled snapshot uses [GeoNames](https://www.geonames.org/) data under [CC B
 
 Refresh deliberately with `node scripts/update-locations.mjs`, review the resulting counts/diff and run the tests before deployment. For a reproducible refresh from downloaded files, set `LOCATION_SOURCE_DIR` to a folder containing `countryInfo.txt`, `admin1CodesASCII.txt` and `admin2Codes.txt`.
 
-Country/state/district filters combine with city, education and profession dropdowns. The latter choices come only from the viewer's existing feed. The existing twenty-profile daily allowance and public-visibility rules are unchanged.
+Country/state/district filters combine with education and profession dropdowns. The latter choices come only from the viewer's existing feed. The existing twenty-profile daily allowance and public-visibility rules are unchanged.
 
 Verification: `pnpm exec tsx --test tests/locations.test.ts`, `node tests/locations.mjs`, production Node build and TypeScript. For actual desktop/mobile form save/reload and filter interactions, also set `LOCATION_BROWSER=1`, optional `PLAYWRIGHT_MODULE` to a module URL and optional `PLAYWRIGHT_CHANNEL` (for example `msedge`), then run `node tests/locations.mjs`. The test uses only an isolated in-memory database and mocked browser requests. The privacy suite separately checks that screenshot shortcuts conceal content while window/tab focus changes do not.
