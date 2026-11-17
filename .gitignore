@@ -49,3 +49,10 @@ next-env.d.ts
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo
+
+# Local reports and export artifacts
+/output/
+# Private signing material
+*.keystore
+*.pfx
+*.p8

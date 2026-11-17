@@ -1,12 +1,12 @@
 import {adminIdentity} from '@/lib/admin';
-import {db,identity,json,errorResponse,fromRow} from '@/lib/store';
+import {db,identity,json,errorResponse,fromRow,validOrigin} from '@/lib/store';
 import {ageFromDate} from '@/lib/security';
 import {isPortal} from '@/lib/portal-auth';
 import {z} from 'zod';
 export const dynamic='force-dynamic';
 type MemberRow={id:string;username:string;mobile:string|null;contact_email:string;status:string;created_at:number;test_account:number;profile_id:string|null;data:string|null;photo_key:string|null;published_at:number|null;expires_at:number|null;updated_at:number|null};
 function member(row:MemberRow){return {id:row.id,username:row.username,mobile:row.mobile,email:row.contact_email,status:row.status,createdAt:row.created_at,testAccount:Boolean(row.test_account),profile:row.profile_id&&row.data?{id:row.profile_id,name:String(JSON.parse(row.data).name),city:String(JSON.parse(row.data).city),publicListing:JSON.parse(row.data).publicListing===true,approvalStatus:fromRow({id:row.profile_id,data:row.data,photo_key:row.photo_key}).approvalStatus,publishedAt:row.published_at}:null};}
-const selection='SELECT a.id,a.username,a.mobile,a.contact_email,a.status,a.created_at,a.test_account,p.id AS profile_id,p.data,p.photo_key,p.published_at,p.expires_at,p.updated_at FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id';
+const selection='SELECT a.id,a.username,coalesce(a.mobile,c.mobile) AS mobile,a.contact_email,a.status,a.created_at,a.test_account,p.id AS profile_id,p.data,p.photo_key,p.published_at,p.expires_at,p.updated_at FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id LEFT JOIN submission_contacts c ON c.owner=a.id';
 export async function GET(request:Request){
   if(!await identity())return json({error:'Sign in required'},401);
   if(!await adminIdentity())return json({error:'Administrator access required'},403);
@@ -38,5 +38,27 @@ export async function GET(request:Request){
     const summary=await db().prepare("SELECT (SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=0) AS members,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND a.test_account=0) AS profiles,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND a.test_account=0 AND json_extract(p.data,'$.approvalStatus')='pending') AS pending,(SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=1) AS testAccounts").first();
     const page=rows.results.slice(0,30),last=page.at(-1);
     return json({members:page.map(member),total:total?.n??0,summary,nextCursor:rows.results.length>30&&last?JSON.stringify({at:last.created_at,id:last.id}):null});
+  }catch(error){return errorResponse(error);}
+}
+export async function DELETE(request:Request){
+  if(!await identity())return json({error:'Sign in required'},401);
+  const admin=await adminIdentity();if(!admin)return json({error:'Administrator access required'},403);
+  if(!isPortal())return json({error:'Member accounts unavailable'},404);
+  if(!validOrigin(request))return json({error:'Invalid request origin'},403);
+  try{
+    const parsed=z.object({id:z.string().uuid(),confirmation:z.string().trim().min(1).max(80),reason:z.string().trim().min(10).max(1000)}).safeParse(await request.json());
+    if(!parsed.success)return json({error:'यूज़रनेम और कम से कम 10 अक्षरों का कारण दें।'},400);
+    const {id,confirmation,reason}=parsed.data;
+    const member=await db().prepare("SELECT username FROM portal_accounts WHERE id=? AND role='member'").bind(id).first<{username:string}>();
+    if(!member)return json({error:'Member not found'},404);
+    if(member.username!==confirmation)return json({error:'यूज़रनेम मेल नहीं खाता।'},400);
+    const results=await db().batch([
+      db().prepare("DELETE FROM portal_accounts WHERE id=? AND role='member' AND NOT EXISTS(SELECT 1 FROM profiles WHERE owner=?)").bind(id,id),
+      ...['portal_sessions','portal_activations','portal_recovery_requests'].map(table=>db().prepare(`DELETE FROM ${table} WHERE account_id=? AND NOT EXISTS(SELECT 1 FROM portal_accounts WHERE id=?)`).bind(id,id)),
+      ...['saved_profiles','daily_views','profile_private','submission_contacts','submission_access','submission_recovery_requests'].map(table=>db().prepare(`DELETE FROM ${table} WHERE owner=? AND NOT EXISTS(SELECT 1 FROM portal_accounts WHERE id=?)`).bind(id,id)),
+      db().prepare("INSERT INTO admin_actions(id,actor,target,action,reason,created_at) SELECT ?,?,?,'delete_account',?,? WHERE NOT EXISTS(SELECT 1 FROM portal_accounts WHERE id=?)").bind(crypto.randomUUID(),admin.userId,id,reason,Date.now(),id),
+    ]);
+    if(!results[0]?.meta.changes)return json({error:'पहले सदस्य की प्रोफ़ाइल हटाएँ, फिर खाता हटाएँ।'},409);
+    return json({ok:true});
   }catch(error){return errorResponse(error);}
 }

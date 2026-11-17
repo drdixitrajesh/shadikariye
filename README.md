@@ -1,3 +1,19 @@
+# Vedik Milan / वैदिक मिलन
+
+Website: https://vedik-milan.softinator.org/
+
+This repository contains the Vedik Milan matrimonial website: profile posting and administration, privacy and consent controls, account access, kundali matching and PDF reports, installable web-app assets, and the existing Android/iOS source.
+
+The current application source is on the `codex/dokploy-sudama` branch. See [Sudama hosting notes](docs/dokploy-sudama.md), [kundali method](docs/kundali-method.md), and [mobile app source](mobile/README.md). The iPhone signing and remote Mac build remain pending; uploading its existing source does not complete an iPhone release.
+
+## Local setup and checks
+
+Use Node.js 22.13+ and the package manager version in `package.json`. Install dependencies with `pnpm install --frozen-lockfile`. Use `pnpm dev` for local development, `pnpm build:node` for the Node deployment build, and `pnpm test:node` for the Node storage/access checks. Supply runtime configuration securely; follow the hosting documentation for required settings and persistence.
+
+Environment files, local databases/uploads, signing keys and local reports are excluded from Git. The downloadable signed Android APK in `public/downloads/` is a distribution asset; private signing material remains outside the repository. Existing production database volumes must be preserved.
+
+## Starter reference
+
 # vinext-starter
 
 A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.

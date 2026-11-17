@@ -6,7 +6,7 @@ export function testAccess(owner:string){const user=portalUser();return isPortal
 export function memberAccess(owner:string){const user=portalUser();return isPortal()&&user?.id===owner&&user.role==='member'&&(user.testAccount||publicRegistration());}
 export function indianDay(now=Date.now()){return new Date(now+19800000).toISOString().slice(0,10);}
 export function ageFromDate(date:string){const today=indianDay();let age=Number(today.slice(0,4))-Number(date.slice(0,4));if(today.slice(5)<date.slice(5))age--;return age;}
-export function validBirthDate(date:string){return /^\d{4}-\d{2}-\d{2}$/.test(date)&&!Number.isNaN(Date.parse(date))&&new Date(date).toISOString().slice(0,10)===date&&ageFromDate(date)>=21&&ageFromDate(date)<=70;}
+export function validBirthDate(date:string){return /^\d{4}-\d{2}-\d{2}$/.test(date)&&!Number.isNaN(Date.parse(date))&&new Date(date).toISOString().slice(0,10)===date&&ageFromDate(date)>=18&&ageFromDate(date)<=70;}
 export function otpReady(){return Boolean(env.TWILIO_ACCOUNT_SID&&env.TWILIO_AUTH_TOKEN&&env.TWILIO_VERIFY_SERVICE_SID&&env.OTP_HASH_SECRET&&env.OTP_HASH_SECRET.length>=32);}
 export async function verified(owner:string){return Boolean(await db().prepare('SELECT owner FROM otp_accounts WHERE owner=? AND verified_at>0').bind(owner).first());}
 export async function requireVerified(owner:string){if(memberAccess(owner))return null;return await verified(owner)?null:json({error:'मोबाइल OTP सत्यापन आवश्यक है। SMS सेवा सक्रिय होने पर सत्यापन करें। / Mobile OTP verification is required. Verify once the SMS service is enabled.'},403);}

@@ -1,0 +1,14 @@
+'use client';
+import {useEffect,useState,type FormEvent} from 'react';
+import {portalApi} from '../portal/client';
+type Recovery={owner:string;name:string;mobile:string;requestedAt:number};
+export function RecoverSubmission({owner}:{owner:string}){
+  const [reason,setReason]=useState(''),[confirmed,setConfirmed]=useState(false),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
+  async function submit(event:FormEvent){event.preventDefault();setBusy(true);setError('');setUrl('');try{const result=await portalApi<{managementUrl:string}>('/api/admin/submissions',{owner,reason,identityConfirmed:confirmed});setUrl(result.managementUrl);setConfirmed(false);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  return <details className="member-management"><summary>बिना login पोस्ट का निजी लिंक वापस दें</summary><p>सिर्फ मूल संपर्क रिकॉर्ड से स्वतंत्र पहचान की पुष्टि करने के बाद नया लिंक बनाएँ। नया लिंक बनते ही पुराना लिंक बंद हो जाएगा। लिंक केवल संबंधित व्यक्ति को दें। खाते से जुड़ी प्रोफ़ाइल के लिए लॉगिन सहायता का उपयोग करें।</p><form onSubmit={submit}><label className="native-check"><input type="checkbox" required checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} disabled={busy}/> मूल संपर्क से व्यक्ति की पहचान की स्वतंत्र पुष्टि की है।</label><div className="field"><label>पहचान की पुष्टि का विवरण / कारण<textarea required minLength={10} maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} disabled={busy}/></label></div><button className="secondary" disabled={busy||!confirmed||reason.trim().length<10}>{busy?'लिंक बना रहे हैं…':'पुराना लिंक बंद करके नया निजी लिंक बनाएँ'}</button></form>{error&&<p role="alert">{error}</p>}{url&&<div className="post-recovery-result"><p>नया निजी लिंक तैयार है। इसे संबंधित व्यक्ति को सुरक्षित माध्यम से दें।</p><a href={url}>निजी लिंक खोलें</a><button className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(url);setNotice('लिंक कॉपी हो गया।');}catch{setNotice('निजी लिंक खोलकर कॉपी करें।');}}}>निजी लिंक कॉपी करें</button>{notice&&<p role="status">{notice}</p>}</div>}</details>;
+}
+export function SubmissionRecoveryQueue(){
+  const [items,setItems]=useState<Recovery[]>([]),[error,setError]=useState('');
+  useEffect(()=>{void portalApi<{requests:Recovery[]}>('/api/admin/submissions').then(r=>setItems(r.requests)).catch(e=>setError(e.message));},[]);
+  return <section className="member-management"><h2>निजी प्रोफ़ाइल लिंक की सहायता</h2><p>खोए हुए निजी लिंक के अनुरोध। सदस्य की जानकारी खोलकर मूल संपर्क से पहचान की पुष्टि करें।</p>{error&&<p role="alert">{error}</p>}{!items.length&&!error?<p>कोई लंबित अनुरोध नहीं है।</p>:<ul>{items.map(item=><li key={item.owner}><a href={'/admin/members/'+item.owner}>{item.name}</a> · {item.mobile}</li>)}</ul>}</section>;
+}

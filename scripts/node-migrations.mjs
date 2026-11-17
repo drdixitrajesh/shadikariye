@@ -9,5 +9,8 @@ export async function migrateAccountContacts(db){
   statements.push(db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS portal_accounts_mobile ON portal_accounts(mobile) WHERE mobile IS NOT NULL'));
   statements.push(db.prepare('CREATE TABLE IF NOT EXISTS portal_credential_attempts(key TEXT PRIMARY KEY,attempts INTEGER NOT NULL,expires_at INTEGER NOT NULL)'));
   statements.push(db.prepare('CREATE TABLE IF NOT EXISTS portal_recovery_requests(account_id TEXT PRIMARY KEY,requested_at INTEGER NOT NULL,resolved_at INTEGER,reviewed_by TEXT)'));
+  statements.push(db.prepare('CREATE TABLE IF NOT EXISTS submission_contacts(owner TEXT PRIMARY KEY NOT NULL,mobile TEXT NOT NULL,created_at INTEGER NOT NULL)'));
+  statements.push(db.prepare('CREATE TABLE IF NOT EXISTS submission_access(owner TEXT PRIMARY KEY NOT NULL,token_hash TEXT NOT NULL UNIQUE,expires_at INTEGER NOT NULL)'));
+  statements.push(db.prepare('CREATE TABLE IF NOT EXISTS submission_recovery_requests(owner TEXT PRIMARY KEY NOT NULL,requested_at INTEGER NOT NULL,resolved_at INTEGER,reviewed_by TEXT)'));
   await db.batch(statements);
 }

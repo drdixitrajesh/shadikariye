@@ -249,3 +249,9 @@ html[data-privacy-shield="hidden"] body>*:not(.privacy-screen){visibility:hidden
 }
 
 .community-browse{align-items:end;overflow:visible;flex-wrap:wrap}
+
+
+
+.kundali-entry{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px max(24px,calc((100vw - 1164px)/2));background:#f7efdf;color:#68384c;border-bottom:1px solid #dfceb2}.kundali-entry-copy{display:grid;gap:6px}.kundali-entry-copy strong{font-family:'Noto Serif Devanagari',serif;font-size:1.5rem;font-weight:600;line-height:1.55}.kundali-entry-copy>span{font-size:.88rem;line-height:1.8;color:#68565b}.kundali-entry>a{display:inline-flex;align-items:center;justify-content:center;gap:18px;flex-shrink:0;min-height:48px;padding:12px 22px;border-radius:7px;background:#fffdf8;color:#532b3c;font-weight:600;text-decoration:none}.kundali-entry>a:hover{background:#fff}.kundali-entry>a:focus-visible{outline:3px solid #68384c;outline-offset:5px}.app-install{padding:18px 0}.app-install>button{color:var(--primary);font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer;background:transparent;border:0;padding:8px 0;min-height:44px}.app-install p{font-size:.9rem;line-height:1.9;margin:8px 0}.app-install small{color:var(--muted-foreground)}@media(max-width:600px){.kundali-entry{align-items:stretch;flex-direction:column;gap:16px;padding:22px 20px}.kundali-entry-copy strong{font-size:1.35rem}.kundali-entry>a{align-self:flex-start;width:100%}}
+
+.android-apk-download{display:inline-flex;align-items:center;min-height:44px;color:var(--primary);font-weight:600;margin-right:24px;text-decoration:underline;text-underline-offset:4px}@media(max-width:600px){.android-apk-download{display:flex;margin-right:0}}

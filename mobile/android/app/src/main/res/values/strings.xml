@@ -1,0 +1,1 @@
+<resources><string name="app_name">वैदिक मिलन</string><string name="asset_statements" translatable="false">[{\"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": {\"namespace\": \"web\", \"site\": \"https://vedik-milan.softinator.org\"}}]</string><color name="primary">#68384c</color><color name="background">#faf9f6</color></resources>

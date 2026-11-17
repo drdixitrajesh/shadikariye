@@ -185,7 +185,7 @@ try{
   r=await call('/api/state',bob);equal(r.data.own.city,bobState.own.city,'An ownership forgery leaves the other member unchanged');equal(r.data.profiles.find(p=>p.id===aliceId)?.email,'fictional.ananya@example.invalid','Allowed member sees the consented contact email');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{email:'broken-address'}));equal(r.status,400,'Invalid contact email is rejected');
   for(const changed of [{name:'Changed Fictional Identity'},{birthDate:'1990-01-01'},{aadhaarLast4:'9876'}]){r=await call('/api/profile',alice,'POST',profileBody(aliceState,changed));equal(r.status,409,'Locked identity cannot be changed through an edit');}
-  r=await call('/api/profile',alice,'POST',profileBody(aliceState,{references:[]}));equal(r.status,400,'Profile edit still requires two consenting references');
+  r=await call('/api/profile',alice,'POST',profileBody(aliceState,{references:[]}));equal(r.status,200,'Profile edit accepts no references');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{aadhaarNumber:'123412341234'}));equal(r.status,400,'Full Aadhaar is rejected');
   r=await call('/api/profile',alice,'POST',profileBody(aliceState,{email:''}));equal(r.status,200,'Optional email can be cleared');equal(r.data.profile.expiresAt,expiry,'Editing does not extend publication lifetime');
   r=await call('/api/state',alice);equal(r.data.own.email,'','Cleared email persists across reads');

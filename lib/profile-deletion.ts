@@ -1,4 +1,5 @@
 import {db,bucket} from '@/lib/store';
+import {isPortal} from './portal-auth';
 export async function flushPhotoCleanup(profileId?:string){
   const rows=await (profileId?db().prepare('SELECT key FROM photo_cleanup WHERE profile_id=? LIMIT 1000').bind(profileId):db().prepare('SELECT key FROM photo_cleanup ORDER BY created_at LIMIT 50')).all<{key:string}>();
   if(!rows.results.length)return true;
@@ -18,6 +19,7 @@ export async function deleteStoredProfile(id:string,moderation?:{actor:string;re
     db().prepare('DELETE FROM profile_private WHERE owner=?').bind(p.owner),
     db().prepare("UPDATE reports SET status='profile_removed' WHERE target=?").bind(id),
   ];
+  if(isPortal())statements.push(db().prepare('DELETE FROM submission_access WHERE owner=?').bind(p.owner),db().prepare('DELETE FROM submission_recovery_requests WHERE owner=?').bind(p.owner));
   if(moderation)statements.push(db().prepare("INSERT INTO admin_actions (id,actor,target,action,reason,created_at) SELECT ?,?,?,'delete_profile',?,? WHERE EXISTS (SELECT 1 FROM profiles WHERE id=?)").bind(crypto.randomUUID(),moderation.actor,id,moderation.reason,now,id));
   statements.push(db().prepare('DELETE FROM profiles WHERE id=?').bind(id));
   const results=await db().batch(statements);

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.softinator.vedikmilan",
+      "sha256_cert_fingerprints": [
+        "86:D6:E6:F1:EC:F9:5B:9B:6A:4E:B3:DE:8D:7A:6E:BB:E0:2C:20:D9:01:D4:99:11:F7:90:A9:6D:8E:0D:AF:EE"
+      ]
+    }
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "वैदिक मिलन",
+  "short_name": "वैदिक मिलन",
+  "description": "निःशुल्क ब्राह्मण विवाह और कुण्डली मिलान",
+  "lang": "hi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf9f6",
+  "theme_color": "#68384c",
+  "icons": [
+    {"src":"/icons/app-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/icons/app-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/icons/app-maskable.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ],
+  "shortcuts": [
+    {"name":"कुण्डली मिलान","url":"/kundali-milan","icons":[{"src":"/icons/app-192.png","sizes":"192x192"}]},
+    {"name":"प्रोफ़ाइल बनाएँ","url":"/post"}
+  ]
+}

@@ -40,7 +40,7 @@ export async function throttle(request:Request,scope:string,subject='',limits={i
   const rows=await env.DB!.batch(keys.map(k=>env.DB!.prepare('INSERT INTO portal_throttle (key,window,count) VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window=excluded.window THEN count+1 ELSE 1 END,window=excluded.window RETURNING count').bind(k.key,window)));
   return rows.every((row,i)=>Number((row.results?.[0] as {count?:number})?.count??999)<=keys[i].limit);
 }
-export async function turnstile(token:unknown,action:'login'|'activate'|'register'|'recover',hostname='managelove.com'){
+export async function turnstile(token:unknown,action:'login'|'activate'|'register'|'recover'|'post',hostname='managelove.com'){
   if(typeof token!=='string'||token.length<1||token.length>2048||!env.TURNSTILE_SECRET_KEY)return false;
   try{
     const response=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:env.TURNSTILE_SECRET_KEY,response:token}),signal:AbortSignal.timeout(10000)});
@@ -113,6 +113,7 @@ export async function handlePortal(request:Request){
       const mobileLogin=body.identifier!==undefined?Boolean(mobile):body.mobile!==undefined;
       const token=typeof body.token==='string'?body.token:'';
       if(!await throttle(request,action,action==='login'?(mobile||(/^[a-z0-9][a-z0-9._-]{2,39}$/.test(username)?username:'unknown')):await digest(token)))return portalJson({error:'Too many attempts. Please wait 15 minutes. / 15 मिनट बाद प्रयास करें।'},429);
+      if(action==='login'&&env.REQUIRE_ACCOUNT_MOBILE!=='0'&&!mobile)return portalJson({error:'लॉगिन के लिए पंजीकृत मोबाइल नंबर आवश्यक है। / Registered mobile number is required to sign in.'},400);
       if(!await turnstile(body.turnstile,action,new URL(request.url).hostname))return portalJson({error:'Security check failed. Please retry Turnstile.'},403);
       if(action==='login'){
         const account=await env.DB!.prepare('SELECT id,role,password_hash,status,session_version FROM portal_accounts WHERE '+(mobileLogin?'mobile=?':'username=?')).bind(mobileLogin?(mobile||'invalid-mobile'):username).first<{id:string;role:string;password_hash:string|null;status:string;session_version:number}>();
@@ -120,7 +121,7 @@ export async function handlePortal(request:Request){
         if(!await reserveCredentialAttempt(env.DB!,attemptKey))return portalJson({error:'3 गलत प्रयास हो चुके हैं। 15 मिनट बाद प्रयास करें। / Three failed attempts. Try again after 15 minutes.'},429);
         if(!validPassword(body.password))return portalJson({error:'Use a password of 16–128 characters. / 16–128 अक्षरों का पासवर्ड चुनें।'},400);
         const check=await passwordService(account?.id??'unknown',body.password.normalize('NFKC'),account?.password_hash??'invalid');
-        if(!account||account.status!=='active'||!check.ok)return portalJson({error:'मोबाइल / यूज़रनेम या पासवर्ड गलत है। / Invalid mobile, username or password.'},401);
+        if(!account||account.status!=='active'||!check.ok)return portalJson({error:'मोबाइल नंबर या पासवर्ड गलत है। / Invalid mobile number or password.'},401);
         await clearCredentialAttempts(env.DB!,attemptKey);
         return portalJson({ok:true,mfaRequired:account.role==='admin'},200,await makeSession(account));
       }
