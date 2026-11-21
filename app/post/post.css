@@ -34,8 +34,21 @@
   margin-block: .75rem 1.5rem;
   padding: clamp(1.25rem, 4.5vw, 2.75rem);
   border-radius: 14px;
+}
+
+.post-page--guest .post-heading {
   background: var(--post-ink);
   color: var(--post-paper);
+}
+
+.post-page--guest .post-success {
+  border: 1px solid var(--post-line);
+  background: var(--post-paper);
+  color: var(--post-ink);
+}
+
+.post-page--guest .post-success .posting-help {
+  background: var(--card);
 }
 
 .post-page--guest :is(.post-heading, .post-success) h1 {
@@ -184,9 +197,6 @@
   outline-offset: 3px;
 }
 
-.post-page--guest :is(.post-success > a, .post-success > p a):focus-visible {
-  outline-color: var(--post-copper);
-}
 .post-page--guest ::selection { background: var(--post-copper); color: var(--post-ink); }
 
 @media (max-width: 600px) {
