@@ -213,7 +213,7 @@ export default function Milan({signedIn,displayName,signInPath,standalone=false,
           <p>{t('अपने जीवनसाथी की खोज, अपनी पसंद और परिवार के मूल्यों के साथ।','Find someone who shares your values and your vision for tomorrow.')}</p>
           <div className="discover-hero-actions">
             <a className="primary" href="#discover-results"><Search size={18} aria-hidden="true"/>{t('रिश्ते देखें','Explore profiles')}</a>
-            {publicRegistration&&!signedIn&&<button className="secondary" onClick={startProfile}>{t('निःशुल्क प्रोफ़ाइल बनाएं','Create a free profile')}</button>}
+            {publicRegistration&&!signedIn&&<a className="secondary" href="/post">{t('निःशुल्क प्रोफ़ाइल बनाएं','Create a free profile')}</a>}
           </div>
         </div>
         <picture className="discover-hero-image">
