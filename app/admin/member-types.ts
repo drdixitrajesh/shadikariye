@@ -1,5 +1,6 @@
 import type {Profile} from '@/lib/matrimony';
-export type Member={id:string;username:string;mobile:string|null;email:string;status:string;createdAt:number;testAccount:boolean;profile:{id:string;name:string;city:string;publicListing?:boolean;approvalStatus?:'pending'|'approved'|'rejected';publishedAt:number}|null};
+export type AdminSection='pending'|'members'|'help';
+export type Member={id:string;username:string;mobile:string|null;email:string;status:string;createdAt:number;testAccount:boolean;profile:{id:string;name:string;city:string;publicListing?:boolean;approvalStatus?:'pending'|'approved'|'rejected';publishedAt:number;updatedAt:number|null}|null};
 export type MembersPage={members:Member[];total:number;summary:{members:number;profiles:number;pending:number;testAccounts:number};nextCursor:string|null};
 export type MemberPage={member:Member;profile:Profile|null;updatedAt:number|null;counts:{saved:number;interestsSent:number;interestsReceived:number;messagesSent:number;profileViews:number;reportsReceived:number};events:{at:number;kind:string;detail:string}[]};
 export function dateLabel(value:number|undefined|null){return value?new Intl.DateTimeFormat('hi-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}).format(value):'—';}

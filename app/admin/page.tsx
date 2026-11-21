@@ -5,8 +5,9 @@ import {env} from 'cloudflare:workers';
 import AdminProfiles from './profiles';
 export const dynamic='force-dynamic';
 export const metadata={title:'सदस्य और प्रोफ़ाइल | वैदिक मिलन',robots:{index:false,follow:false}};
-export default async function AdminPage(){
+export default async function AdminPage({searchParams}:{searchParams:Promise<{section?:string|string[]}>}){
   const user=await getChatGPTUser();if(!user)redirect(env.STANDALONE_MODE==='test-portal'?'/account':chatGPTSignInPath('/admin'));
   if(!isAdmin(user))return <main className="legal-page"><h1>Administrator access required / प्रशासक की अनुमति आवश्यक है</h1><p>Only configured administrators can manage other members’ profiles. / केवल अधिकृत प्रशासक अन्य सदस्यों की प्रोफ़ाइल हटा सकते हैं।</p><a href="/">Back to website / वेबसाइट पर जाएं</a></main>;
-  return <AdminProfiles standalone={env.STANDALONE_MODE==='test-portal'}/>;
+  const {section}=await searchParams;
+  return <AdminProfiles standalone={env.STANDALONE_MODE==='test-portal'} section={section==='members'||section==='help'?section:'pending'}/>;
 }

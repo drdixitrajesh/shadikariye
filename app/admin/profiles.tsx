@@ -3,11 +3,12 @@ import {useState,useEffect,type FormEvent} from 'react';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import AdminAccounts from '../portal/admin-accounts';
 import AdminWorkspace from './workspace';
+import type {AdminSection} from './member-types';
 import {LogoutButton} from '../portal/client';
 import {type Profile,HINDI} from '@/lib/matrimony';
 type Page={profiles:Profile[];total:number;pendingPhotoCleanup:number;nextCursor:string|null};
 async function api(path:string,options?:RequestInit){const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...options?.headers}});const data=await r.json() as Page&{error?:string;ok?:boolean;cleanupPending?:boolean};if(!r.ok)throw new Error(data.error??'Please retry / फिर प्रयास करें');return data;}
-export default function AdminProfiles({standalone=false}:{standalone?:boolean}){return standalone?<AdminWorkspace/>:<LegacyAdminProfiles/>;}
+export default function AdminProfiles({standalone=false,section='pending'}:{standalone?:boolean;section?:AdminSection}){return standalone?<AdminWorkspace section={section}/>:<LegacyAdminProfiles/>;}
 function LegacyAdminProfiles({standalone=false}:{standalone?:boolean}){
   const [page,setPage]=useState<Page|null>(null),[query,setQuery]=useState(''),[activeQuery,setActiveQuery]=useState(''),[cursor,setCursor]=useState<string|null>(null),[history,setHistory]=useState<(string|null)[]>([]);
   const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');

@@ -5,8 +5,9 @@ import {isPortal} from '@/lib/portal-auth';
 import {z} from 'zod';
 export const dynamic='force-dynamic';
 type MemberRow={id:string;username:string;mobile:string|null;contact_email:string;status:string;created_at:number;test_account:number;profile_id:string|null;data:string|null;photo_key:string|null;published_at:number|null;expires_at:number|null;updated_at:number|null};
-function member(row:MemberRow){return {id:row.id,username:row.username,mobile:row.mobile,email:row.contact_email,status:row.status,createdAt:row.created_at,testAccount:Boolean(row.test_account),profile:row.profile_id&&row.data?{id:row.profile_id,name:String(JSON.parse(row.data).name),city:String(JSON.parse(row.data).city),publicListing:JSON.parse(row.data).publicListing===true,approvalStatus:fromRow({id:row.profile_id,data:row.data,photo_key:row.photo_key}).approvalStatus,publishedAt:row.published_at}:null};}
+function member(row:MemberRow){return {id:row.id,username:row.username,mobile:row.mobile,email:row.contact_email,status:row.status,createdAt:row.created_at,testAccount:Boolean(row.test_account),profile:row.profile_id&&row.data?{id:row.profile_id,name:String(JSON.parse(row.data).name),city:String(JSON.parse(row.data).city),publicListing:JSON.parse(row.data).publicListing===true,approvalStatus:fromRow({id:row.profile_id,data:row.data,photo_key:row.photo_key}).approvalStatus,publishedAt:row.published_at,updatedAt:row.updated_at}:null};}
 const selection='SELECT a.id,a.username,coalesce(a.mobile,c.mobile) AS mobile,a.contact_email,a.status,a.created_at,a.test_account,p.id AS profile_id,p.data,p.photo_key,p.published_at,p.expires_at,p.updated_at FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id LEFT JOIN submission_contacts c ON c.owner=a.id';
+const pendingApproval="json_extract(p.data,'$.approvalStatus')='pending' AND p.expires_at>?";
 export async function GET(request:Request){
   if(!await identity())return json({error:'Sign in required'},401);
   if(!await adminIdentity())return json({error:'Administrator access required'},403);
@@ -32,12 +33,16 @@ export async function GET(request:Request){
     if(query.length>80)return json({error:'Search must be under 80 characters'},400);
     let cursor:{at:number;id:string}|null=null;
     if(url.searchParams.get('before')){try{cursor=z.object({at:z.number().int().nonnegative(),id:z.string().uuid()}).parse(JSON.parse(url.searchParams.get('before')!));}catch{return json({error:'Invalid page cursor'},400);}}
-    const filter=(pendingOnly?" WHERE coalesce(json_extract(p.data,'$.approvalStatus'),'approved')='pending' AND ":" WHERE ")+" a.role='member' AND (?=1 OR a.test_account=0) AND (instr(lower(a.username),lower(?))>0 OR instr(lower(coalesce(json_extract(p.data,'$.name'),'')),lower(?))>0 OR instr(lower(coalesce(json_extract(p.data,'$.city'),'')),lower(?))>0)";
-    const rows=await db().prepare(selection+filter+(cursor?' AND (a.created_at<? OR (a.created_at=? AND a.id<?))':'')+' ORDER BY a.created_at DESC,a.id DESC LIMIT 31').bind(includeTests?1:0,query,query,query,...(cursor?[cursor.at,cursor.at,cursor.id]:[])).all<MemberRow>();
-    const total=await db().prepare('SELECT COUNT(*) AS n FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id'+filter).bind(includeTests?1:0,query,query,query).first<{n:number}>();
-    const summary=await db().prepare("SELECT (SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=0) AS members,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND a.test_account=0) AS profiles,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND a.test_account=0 AND json_extract(p.data,'$.approvalStatus')='pending') AS pending,(SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=1) AS testAccounts").first();
+    const now=Date.now();
+    const orderColumn=pendingOnly?'p.updated_at':'a.created_at';
+    const filter=" WHERE a.role='member' AND (?=1 OR a.test_account=0) AND (instr(lower(a.username),lower(?))>0 OR instr(lower(coalesce(json_extract(p.data,'$.name'),'')),lower(?))>0 OR instr(lower(coalesce(json_extract(p.data,'$.city'),'')),lower(?))>0)"+(pendingOnly?' AND '+pendingApproval:'');
+    const filterParams=[includeTests?1:0,query,query,query,...(pendingOnly?[now]:[])];
+    const pageFilter=cursor?` AND (${orderColumn}<? OR (${orderColumn}=? AND a.id<?))`:'';
+    const rows=await db().prepare(selection+filter+pageFilter+` ORDER BY ${orderColumn} DESC,a.id DESC LIMIT 31`).bind(...filterParams,...(cursor?[cursor.at,cursor.at,cursor.id]:[])).all<MemberRow>();
+    const total=await db().prepare('SELECT COUNT(*) AS n FROM portal_accounts a LEFT JOIN profiles p ON p.owner=a.id'+filter).bind(...filterParams).first<{n:number}>();
+    const summary=await db().prepare(`SELECT (SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=0) AS members,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND a.test_account=0) AS profiles,(SELECT COUNT(*) FROM profiles p JOIN portal_accounts a ON a.id=p.owner WHERE a.role='member' AND ${pendingApproval}) AS pending,(SELECT COUNT(*) FROM portal_accounts WHERE role='member' AND test_account=1) AS testAccounts`).bind(now).first();
     const page=rows.results.slice(0,30),last=page.at(-1);
-    return json({members:page.map(member),total:total?.n??0,summary,nextCursor:rows.results.length>30&&last?JSON.stringify({at:last.created_at,id:last.id}):null});
+    return json({members:page.map(member),total:total?.n??0,summary,nextCursor:rows.results.length>30&&last?JSON.stringify({at:pendingOnly?last.updated_at:last.created_at,id:last.id}):null});
   }catch(error){return errorResponse(error);}
 }
 export async function DELETE(request:Request){

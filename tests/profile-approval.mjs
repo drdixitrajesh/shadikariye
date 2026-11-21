@@ -58,5 +58,67 @@ try{
   const after=await db.prepare('SELECT COUNT(*) AS n FROM admin_actions WHERE target=?').bind(id).first();eq(after.n,5);
   p=await own();await db.prepare('UPDATE profiles SET expires_at=? WHERE id=?').bind(Date.now()-1,id).run();
   eq((await review()).status,409);
-  console.log('PASS: '+checks+' approval checks: pending visibility, roles/MFA, rejection/resubmission, stale revisions, public consent, photos, concurrent review and audit.');
+
+  // An older member's new private revision belongs at the head of the review queue.
+  const olderMember=await account('member');
+  const olderSubmission=await call('/api/profile',olderMember.cookie,{...body,publicListing:false});
+  eq(olderSubmission.status,200);
+  const olderProfile=olderSubmission.data.profile;
+  const queueTime=Date.now();
+  await db.prepare('UPDATE portal_accounts SET created_at=? WHERE id=?').bind(queueTime-60_000,olderMember.id).run();
+  await db.prepare('UPDATE profiles SET updated_at=? WHERE id=?').bind(queueTime-60_000,olderProfile.id).run();
+  const fixtures=[];
+  await db.batch(Array.from({length:33},(_,index)=>{
+    const memberId=randomUUID();
+    const testAccount=index===0;
+    const expired=index===1;
+    // Tie the timestamps across the first page boundary to exercise the cursor.
+    const updatedAt=queueTime-(testAccount?1_000:2_000);
+    fixtures.push({memberId,expired,updatedAt});
+    return [
+      db.prepare("INSERT INTO portal_accounts(id,username,role,status,test_account,created_at) VALUES(?,?,'member','active',?,?)").bind(memberId,'queue.qa.'+index,Number(testAccount),queueTime-30_000+index),
+      db.prepare('INSERT INTO profiles(id,owner,data,updated_at,published_at,expires_at) VALUES(?,?,?,?,?,?)').bind(
+        randomUUID(),memberId,JSON.stringify({name:'Fictional Queue Member '+index,city:'Test City',publicListing:false,approvalStatus:'pending'}),updatedAt,queueTime-10_000,expired?queueTime-1:queueTime+86_400_000),
+    ];
+  }).flat());
+  const resubmitted=await call('/api/profile',olderMember.cookie,{...body,city:'Test City',publicListing:false,publicationToken:olderProfile.publishedAt});
+  eq(resubmitted.status,200);eq(resubmitted.data.profile.approvalStatus,'pending');
+  eq(resubmitted.data.profile.publicListing,false);
+
+  const pendingPath='/api/admin/members?pending=1';
+  const realQueue=await call(pendingPath,admin.cookie);
+  eq(realQueue.status,200);
+  eq(realQueue.data.members[0].id,olderMember.id);
+  eq(realQueue.data.total,32);
+  eq(realQueue.data.summary.pending,33);
+  eq(realQueue.data.members.some(member=>member.testAccount),false);
+
+  const allPendingPath=pendingPath+'&tests=1';
+  const allQueue=await call(allPendingPath,admin.cookie);
+  eq(allQueue.status,200);
+  eq(allQueue.data.total,33);
+  eq(allQueue.data.summary.pending,33);
+  eq(allQueue.data.members.slice(0,2).map(member=>member.id),[olderMember.id,fixtures[0].memberId]);
+  eq(allQueue.data.members.length,30);
+  const nextQueue=await call(allPendingPath+'&before='+encodeURIComponent(allQueue.data.nextCursor),admin.cookie);
+  eq(nextQueue.status,200);
+  eq(nextQueue.data.members.length,3);
+  eq(nextQueue.data.nextCursor,null);
+  const queuedIds=[...allQueue.data.members,...nextQueue.data.members].map(member=>member.id);
+  eq(new Set(queuedIds).size,queuedIds.length);
+  eq(new Set(queuedIds),new Set([olderMember.id,...fixtures.filter(fixture=>!fixture.expired).map(fixture=>fixture.memberId)]));
+  const updateByMember=new Map(fixtures.map(fixture=>[fixture.memberId,fixture.updatedAt]));
+  const updateOrder=queuedIds.slice(1).map(memberId=>updateByMember.get(memberId));
+  eq(updateOrder,[...updateOrder].sort((first,second)=>second-first));
+  for(const [path,activeLink] of [
+    ['/admin','<a href="/admin" aria-current="page">मंज़ूरी बाकी</a>'],
+    ['/admin?pending=1','<a href="/admin" aria-current="page">मंज़ूरी बाकी</a>'],
+    ['/admin?section=members','<a href="/admin?section=members" aria-current="page">सभी सदस्य</a>'],
+  ]){
+    const page=await runtime.dispatchFetch(origin+path,{headers:{Cookie:admin.cookie}});
+    eq(page.status,200);
+    eq((await page.text()).includes(activeLink),true);
+  }
+  eq((await call(pendingPath,olderMember.cookie)).status,403);
+  console.log('PASS: '+checks+' approval checks: pending queue and visibility, roles/MFA, rejection/resubmission, stale revisions, public consent, photos, concurrent review and audit.');
 }finally{await runtime.dispose();}
