@@ -22,6 +22,10 @@ try{
   const image=await sharp({create:{width:600,height:800,channels:3,background:'#cab8a8'}}).png().toBuffer();
   await db.prepare('INSERT INTO portal_photos(key,body,mime,size) VALUES(?,?,?,?)').bind(photoKey,image,'image/png',image.length).run();
   for(const path of ['/','/?community=Gaur','/portraits.png','/login','/register','/terms','/account','/api/portal/me','/api/health'])eq((await call(path)).status,200);
+  for(const path of ['/vedik-milan-hero.webp','/vedik-milan-hero-small.webp']){
+    for(const method of ['GET','HEAD'])eq((await call(path,{method})).status,200);
+    eq((await call(path,{method:'POST',body:{}})).status,303);
+  }
   for(const path of ['/locations/IN.json','/locations/US.json','/locations/countries.json','/locations/source.json']){
     for(const method of ['GET','HEAD']){const response=await call(path,{method});eq(response.status!==303,true);eq(response.headers.get('location'),null);}
   }

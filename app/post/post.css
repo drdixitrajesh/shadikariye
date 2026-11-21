@@ -8,3 +8,189 @@
 .post-public-help{margin:0 0 24px 30px;max-width:65ch}.post-public-help p{margin:10px 0}.post-public-help strong{color:var(--foreground)}@media(max-width:600px){.post-public-help{margin-left:0}}
 
 .post-gotra-field label{display:block;margin-bottom:8px}.post-gotra-field select,.post-gotra-field input{width:100%}.post-gotra-field label:not(:first-child){margin-top:14px}.post-gotra-field small{display:block;margin-top:8px;line-height:1.8;color:var(--muted-foreground);font-size:.8rem}
+
+.post-page--guest {
+  --post-ink: #321f2d;
+  --post-paper: #fffaf5;
+  --post-copper: #edbf9b;
+  --post-muted: #594550;
+  --post-line: #dbc8cc;
+  --post-focus: #804760;
+  color: var(--post-ink);
+  padding-block-start: clamp(1rem, 4vw, 2.5rem);
+}
+
+.post-page--guest .post-home-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--post-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: .3em;
+}
+
+.post-page--guest :is(.post-heading, .post-success) {
+  margin-block: .75rem 1.5rem;
+  padding: clamp(1.25rem, 4.5vw, 2.75rem);
+  border-radius: 14px;
+  background: var(--post-ink);
+  color: var(--post-paper);
+}
+
+.post-page--guest :is(.post-heading, .post-success) h1 {
+  font-size: clamp(1.9rem, 5vw, 3.2rem);
+  line-height: 1.4;
+  letter-spacing: normal;
+  margin-block: 0 .35rem;
+}
+
+.post-page--guest .post-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .25rem 1.25rem;
+}
+
+.post-page--guest .post-heading h1 { grid-area: 1 / 1; }
+
+.post-page--guest .post-heading p:first-child {
+  grid-area: 1 / 2;
+  align-self: center;
+  color: var(--post-copper);
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+.post-page--guest .post-heading p:last-child {
+  grid-column: 1 / -1;
+  color: var(--post-paper);
+  max-width: 65ch;
+  line-height: 1.7;
+}
+
+.post-page--guest > p a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--post-focus);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: .22em;
+}
+
+.post-page--guest .posting-help {
+  margin-block: .75rem;
+  border: 1px solid var(--post-line);
+  border-radius: 12px;
+  background: var(--post-paper);
+  color: var(--post-ink);
+  padding: 1rem clamp(1rem, 3vw, 1.5rem);
+}
+
+.post-page--guest .simple-post-form > fieldset {
+  min-inline-size: 0;
+  border: 0;
+  border-block-start: 1px solid var(--post-line);
+  border-radius: 0;
+  margin-block: 1.75rem 1.25rem;
+  padding: 1rem 0 0;
+}
+
+.post-page--guest .simple-post-form > fieldset > legend {
+  padding-inline: 0 .75rem;
+  color: var(--post-ink);
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.post-page--guest .simple-post-form label {
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.post-page--guest .simple-post-form :is(small, .post-consent p) {
+  color: var(--post-muted);
+  font-size: .875rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.post-page--guest .simple-post-form :is(input:not([type=checkbox]), select, textarea) {
+  min-inline-size: 0;
+  min-block-size: 48px;
+  border-color: #9d818c;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 400;
+  caret-color: var(--post-focus);
+}
+
+.post-page--guest .simple-post-form :is(input, textarea)::placeholder { color: var(--post-muted); }
+.post-page--guest .simple-post-form input[type=checkbox] { accent-color: var(--post-ink); }
+
+.post-page--guest .simple-post-form input[type=file]::file-selector-button {
+  margin-inline-end: .75rem;
+  padding: .45rem .65rem;
+  border: 1px solid var(--post-line);
+  border-radius: 5px;
+  background: var(--post-paper);
+  color: var(--post-ink);
+  cursor: pointer;
+}
+
+.post-page--guest .post-optional {
+  margin-block: 1.5rem;
+  padding: .35rem clamp(.85rem, 2vw, 1.25rem);
+  border-color: var(--post-line);
+  border-radius: 12px;
+  background: var(--post-paper);
+}
+
+.post-page--guest .post-optional summary {
+  min-height: 44px;
+  padding-block: .6rem;
+}
+
+.post-page--guest .post-optional[open] > fieldset { padding-bottom: .75rem; }
+
+.post-page--guest .simple-post-form .post-consent label {
+  min-height: 44px;
+  font-weight: 400;
+}
+
+.post-page--guest .post-consent a,
+.post-page--guest .post-success > p a,
+.post-page--guest .post-success > a {
+  text-decoration: underline;
+  text-underline-offset: .22em;
+}
+
+.post-page--guest .simple-post-form > button.primary {
+  margin-block-start: .85rem;
+  border-color: var(--post-ink);
+  background: var(--post-ink);
+  color: var(--post-paper);
+  border-radius: 8px;
+}
+
+.post-page--guest .simple-post-form > button.primary:hover:not(:disabled) {
+  border-color: var(--post-focus);
+  background: var(--post-focus);
+}
+
+.post-page--guest :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--post-focus);
+  outline-offset: 3px;
+}
+
+.post-page--guest :is(.post-success > a, .post-success > p a):focus-visible {
+  outline-color: var(--post-copper);
+}
+.post-page--guest ::selection { background: var(--post-copper); color: var(--post-ink); }
+
+@media (max-width: 600px) {
+  .post-page--guest .post-heading { grid-template-columns: minmax(0, 1fr); gap: .4rem; }
+  .post-page--guest .post-heading p:first-child { grid-area: 3 / 1; }
+  .post-page--guest .post-heading p:last-child { grid-area: 2 / 1; }
+}
